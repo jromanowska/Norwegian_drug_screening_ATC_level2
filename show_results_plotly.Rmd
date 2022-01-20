@@ -1,0 +1,153 @@
+---
+title: "Interactive results"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    theme: paper
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(crosstalk)
+library(flexdashboard)
+library(purrr)
+library(tidyr)
+```
+
+```{r read_data}
+all.results <- read_csv("cur_results_all.csv")
+```
+
+> **RESULTS from Cox-regression analysis:**
+
+> - exposure defined as min.2 prescriptions;
+> - age as the time scale;
+> - PD defined as 4 prescriptions of levodopa (+ reimbursement codes) **OR** mao-b inhibitors (N04BD);
+> - adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate.
+
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Sorted by ATC code
+
+```{r sort_by_atc}
+cur.results <- all.results
+```
+
+
+```{r plot_plotly,eval=FALSE,include=FALSE,echo=FALSE,warning=FALSE,out.height=1200,fig.height=1200}
+# create two columns: one for selection, the other for plot
+shared.atc <- SharedData$new(cur.results)
+
+bscols(widths = c(3, NA),
+	list(
+		filter_checkbox(id = "p-val_exclude", label = "(Unadjusted) P-value filtering",
+				sharedData = shared.atc, group = ~p.val.group, inline = TRUE),
+		filter_slider(id = "x_range", label = "HR filtering",
+				sharedData = shared.atc, column = ~HR, round = 1),
+		filter_checkbox(id = "atc_series", label = "ATC series filtering",
+				sharedData = shared.atc, group = ~group)
+	),
+	plot_ly(data = shared.atc, x = ~HR, y = ~ATC_code, text = ~hover.text,
+					 error_x = list(
+					 		array = ~HR_u, arrayminus = ~HR_l,
+					 		color = ~as.factor(group), symmetric = FALSE),
+					 height = 1200) %>%
+		add_markers(color = ~as.factor(group)) %>%
+		layout(xaxis = list(range = c(0,10),
+													mirror = "ticks"),
+						yaxis = list(title = list(text = "ATC code")))
+)
+
+```
+
+```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE, out.height=1200, fig.height=100}
+# create two columns: one for selection, the other for plot
+shared.atc <- SharedData$new(cur.results)
+ 
+plot.sort.atc <-
+	ggplot(shared.atc, aes(HR, ATC_code, text = hover.text)) +
+	geom_point(aes(color = as.factor(group))) +
+  geom_errorbarh(aes(xmin = HR_l, xmax = HR_u, color = as.factor(group))) +
+  geom_vline(aes(xintercept = 1), color = "grey") +
+	scale_x_continuous(name = "HR", trans = "log") +
+  coord_cartesian(xlim = c(NA, 10)) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  xlab("HR") + ylab("ATC code")
+
+bscols(widths = c(3, NA),
+	list(
+		filter_checkbox(id = "p-val_exclude", label = "P-value filtering",
+				sharedData = shared.atc, group = ~p.val.group, inline = TRUE),
+		filter_slider(id = "x_range", label = "HR filtering",
+				sharedData = shared.atc, column = ~HR, round = 1),
+		filter_checkbox(id = "users_range", label = "no. of users per drug",
+				sharedData = shared.atc, group = ~users.group, inline = TRUE),
+		filter_checkbox(id = "atc_series", label = "ATC series filtering",
+				sharedData = shared.atc, group = ~group)
+	),
+	ggplotly(plot.sort.atc, height = nrow(cur.results) * 10,
+						tooltip = c("y", "text"))
+)
+
+```
+
+### Sorted by HR value
+
+```{r sort_by_pv}
+cur.results <- all.results
+hr.order <- order(cur.results$HR)
+cur.results$ATC_code <- factor(cur.results$ATC_code,
+		levels = cur.results$ATC_code[ hr.order ], ordered = TRUE)
+```
+
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height=1200,fig.height=100}
+```
+
+### Sorted by p-value
+
+```{r sort_by_hr}
+cur.results <- all.results
+pv.order <- order(cur.results$p.adj.FDR, decreasing = TRUE)
+cur.results$ATC_code <- factor(cur.results$ATC_code,
+		levels = cur.results$ATC_code[ pv.order ], ordered = TRUE)
+```
+
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height=1200,fig.height=100}
+```
+
+
+### Table view
+
+
+```{r table,include=TRUE,echo=FALSE,out.height=1200, fig.height=100}
+DT::datatable(
+	all.results %>%
+		select(ATC_code, name, HR, HR_l, HR_u, pvals, p.adj.FDR, N.nonpd, N.pd) %>%
+		mutate(across(HR:p.adj.FDR, ~ signif(.x, digits = 2))) %>% 
+		tidyr::unite("HR_CI", HR_l:HR_u, sep = "-"),
+	class = "compact",
+	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
+							 "p-value (FDR-adj.)", "# users without PD", "# users with PD"),
+	fillContainer = TRUE,
+	height = 2000,
+	width = '80%',
+	rownames = FALSE,
+	extensions = c('FixedHeader', 'Buttons'),
+	options = list(
+		scrollCollapse = FALSE,
+		fixedHeader = TRUE,
+		lengthMenu = c(50, 100, 200, 500, -1),
+		dom = 'Bfrtip',
+		buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+	)
+)
+```
+
+
