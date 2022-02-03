@@ -1,0 +1,360 @@
+---
+title: "Interactive results"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: scroll
+    theme: paper
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(crosstalk)
+library(flexdashboard)
+library(purrr)
+library(tidyr)
+library(hrbrthemes)
+library(ggalt)
+library(ggrepel)
+library(here)
+library(ggiraph)
+```
+
+```{r read_data}
+women_results <- read_csv(
+	here(
+		"DATA",
+		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_women.csv"
+		)
+	)
+men_results <- read_csv(
+	here(
+		"DATA",
+		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_men.csv"
+		)
+	)
+```
+
+**RESULTS from Cox-regression analysis:**
+
+- exposure defined as min.2 prescriptions;
+- age as the time scale;
+- PD defined as 4 prescriptions of levodopa (+ reimbursement codes) **OR** mao-b inhibitors (N04BD);
+- adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate;
+- stratified by sex.
+
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Sorted by ATC code
+
+```{r sort_by_atc}
+cur_results <- bind_rows(
+	women_results %>%
+		tibble::add_column(sex = "women"),
+	men_results %>%
+		tibble::add_column(sex = "men")
+)
+unique_ATC_codes <- cur_results %>%
+	distinct(ATC_code) %>%
+	pull()
+```
+
+
+```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE, out.height='100%'}
+# create two columns: one for selection, the other for plot
+shared.atc <- SharedData$new(cur_results)
+ 
+plot.sort.strata <- shared.atc %>%
+	ggplot(aes(HR, ATC_code, text = hover.text)) +
+	geom_point(aes(color = as.factor(group))) +
+  geom_errorbarh(aes(xmin = HR_l, xmax = HR_u, color = as.factor(group))) +
+  geom_vline(aes(xintercept = 1), color = "grey") +
+	scale_x_continuous(name = "HR", trans = "log") +
+  coord_cartesian(xlim = c(NA, 10)) +
+	facet_grid(cols = vars(sex)) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  xlab("HR") + ylab("ATC code")
+
+bscols(widths = c(3, NA),
+	list(
+		filter_checkbox(
+			id = "p-val_exclude",
+			label = "P-value filtering",
+			sharedData = shared.atc,
+			group = ~p.val.group,
+			inline = TRUE
+		),
+		filter_slider(id = "x_range", label = "HR filtering",
+				sharedData = shared.atc, column = ~HR, round = 1),
+		filter_checkbox(id = "users_range", label = "no. of users per drug",
+				sharedData = shared.atc, group = ~users.group, inline = TRUE),
+		filter_checkbox(id = "atc_series", label = "ATC series filtering",
+				sharedData = shared.atc, group = ~group)
+	),
+	ggplotly(plot.sort.strata, height = nrow(cur_results) * 10,
+						tooltip = c("y", "text"))
+)
+
+```
+
+### Sorted by HR value
+
+```{r sort_by_pv}
+cur_results <- bind_rows(
+	women_results %>%
+		tibble::add_column(sex = "women"),
+	men_results %>%
+		tibble::add_column(sex = "men")
+)
+
+# if there are various ATC codes for women and men, I need to merge those
+hr_order_women <- cur_results %>%
+		filter(sex == "women") %>%
+		distinct(ATC_code, HR) %>%
+		arrange(HR)
+hr_order_men <- cur_results %>%
+		filter(sex == "men") %>%
+		distinct(ATC_code, HR) %>%
+		arrange(HR)
+hr_order <- hr_order_women %>%
+	full_join(
+		hr_order_men,
+		by = "ATC_code",
+		suffix = c("_women", "_men")
+	) %>%
+	arrange(HR_women) %>%
+	pull(ATC_code)
+
+cur_results$ATC_code <- factor(
+	cur_results$ATC_code,
+	levels = hr_order,
+	ordered = TRUE
+)
+```
+
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
+```
+
+### Sorted by p-value
+
+```{r sort_by_hr}
+cur_results <- bind_rows(
+	women_results %>%
+		tibble::add_column(sex = "women"),
+	men_results %>%
+		tibble::add_column(sex = "men")
+)
+# if there are various ATC codes for women and men, I need to merge those
+pv_order_women <- cur_results %>%
+		filter(sex == "women") %>%
+		distinct(ATC_code, p.adj.FDR) %>%
+		arrange(p.adj.FDR)
+pv_order_men <- cur_results %>%
+		filter(sex == "men") %>%
+		distinct(ATC_code, p.adj.FDR) %>%
+		arrange(p.adj.FDR)
+pv_order <- pv_order_women %>%
+	full_join(
+		pv_order_men,
+		by = "ATC_code",
+		suffix = c("_women", "_men")
+	) %>%
+	arrange(p.adj.FDR_women) %>%
+	pull(ATC_code)
+
+cur_results$ATC_code <- factor(
+	cur_results$ATC_code,
+	levels = pv_order,
+	ordered = TRUE
+)
+```
+
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
+```
+
+### Comparison between sexes
+
+```{r compare_sex}
+cur_results <- women_results %>%
+	select(ATC_code, name, group, HR, HR_l, HR_u, p.adj.FDR, p.val.group,
+				 N.nonpd, N.pd, users.group, hover.text) %>%
+	full_join(
+		men_results %>%
+			select(ATC_code, HR, HR_l, HR_u, p.adj.FDR, p.val.group,
+				 N.nonpd, N.pd, users.group, hover.text),
+		by = "ATC_code",
+		suffix = c("_women", "_men")
+	) %>%
+	# calculate difference
+	mutate(HR_sex_diff = HR_women - HR_men) %>%
+	arrange(HR_sex_diff)
+
+order.diff <- cur_results %>%
+	arrange(HR_sex_diff) %>%
+	pull(ATC_code)
+cur_results$ATC_code <- factor(
+	cur_results$ATC_code,
+	levels = order.diff,
+	ordered = TRUE
+)
+```
+
+
+```{r plot_diff_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
+clrs <- list(men = "#bad744", women = "#5b8124")
+
+# create label on the top result
+label.df <- cur_results %>%
+	# filter(ATC_code == "G03")
+	arrange(desc(HR_sex_diff), desc(ATC_code)) %>%
+	slice(1)
+
+label.women.x <- max(label.df$HR_women, na.rm = TRUE)
+label.women.y <- as.character(label.df$ATC_code)
+
+label.men.x <- max(label.df$HR_men, na.rm = TRUE)
+label.men.y <- as.character(label.df$ATC_code)
+
+label.df <- tibble(x = c(label.men.x, label.women.x),
+	 y = c(label.men.y, label.women.y),
+	 label = c("men", "women"))
+
+# create shading for those results that change the side of HR=1
+ymin <- cur_results %>%
+	arrange(HR_sex_diff, ATC_code) %>%
+	filter((HR_men > 1 & HR_women < 1) |
+				 	(HR_men < 1 & HR_women > 1)) %>%
+	pull(ATC_code) %>%
+	as.numeric()
+ymax <- ymin + 0.5
+ymin <- ymin - 0.5
+
+y_shading_label <- cur_results %>%
+	filter(ATC_code %in% c("B05", "B02")) %>%
+	pull(ATC_code) %>%
+	as.numeric() %>%
+	sort()
+
+# range of the X axis
+range.x <- range(
+	range(cur_results$HR_women, na.rm = TRUE),
+	range(cur_results$HR_men, na.rm = TRUE)
+)
+
+plot_sex_diff <- ggplot(cur_results,
+		aes(y = ATC_code, x = HR_women, xend = HR_men)) +
+	geom_segment(aes(x = 0, xend = HR_women, y = ATC_code, yend = ATC_code),
+		linetype = 3) +
+	# shading those that change risk direction
+	annotate("rect", xmin = 0, xmax = range.x[2] + 0.1, ymin = ymin,
+		ymax = ymax, fill = "grey70", alpha = 0.6) +
+	annotate("text", x = 2.5,
+		y = min(y_shading_label) + (max(y_shading_label) - min(y_shading_label))/2,
+		label = "Shaded areas mark results that\n show qualitative change
+		between women and men",
+		size = 3) +
+	# create connections between points
+  geom_dumbbell(
+  	size = 2, color = "grey60", colour_x = clrs$women,
+  	colour_xend = clrs$men
+  ) +
+	# geom_point_interactive(
+	# 	aes(tooltip = hover.text_women),
+	geom_point(
+		aes(text = hover.text_women),
+		size = 4,
+		color = clrs$women
+	) +
+	# geom_point_interactive(
+	# 	aes(y = ATC_code, x = HR_men, tooltip = hover.text_men),
+	geom_point(
+		aes(y = ATC_code, x = HR_men, text = hover.text_men),
+		size = 4,
+		color = clrs$men
+	) +
+	# create labels
+	geom_label_repel(
+		data = label.df,
+		mapping = aes(x = x, y = y, label = label, fill = label),
+		size = 3.5,
+		xlim = log(c(1.4, 2.5)),
+		ylim = c(label.df$y[1], NA),
+		inherit.aes = FALSE
+	) +
+	scale_fill_discrete(type = as.character(clrs), guide = "none") +
+  labs(
+  	x = "HR",
+  	y = "ATC code",
+  	title = "Comparison of the effect sizes for women vs.men",
+  	subtitle = "ordered by the difference size and direction",
+  	caption = "all drugs are grouped by ATC level 2"
+  ) +
+	geom_vline(color = "red", aes(xintercept = 1)) +
+	scale_x_continuous(
+		trans = "log",
+		breaks = c(0.3, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.8, 2.2, 2.6, 3)
+	) +
+	coord_cartesian(
+		ylim = c(-0.5, max(as.numeric(cur_results$ATC_code)) + 0.5),
+		xlim = c(0.25, range.x[2])
+		) +
+  theme_ipsum(grid = "X", axis_title_face = "bold", axis_text_size = 9.5) +
+  theme(panel.grid.major.x = element_line(size = 0.05),
+  			axis.text.y = element_text(size = 8))
+
+# plot interactive
+ggplotly(
+	plot_sex_diff,
+	height = nrow(cur_results) * 10,
+	tooltip = c("y", "text")
+)
+girafe(
+	ggobj = plot_sex_diff,
+	width_svg = 10,
+	height_svg = 12,
+	pointsize = 10
+)
+
+```
+
+
+### Table view
+
+
+```{r table,include=TRUE,echo=FALSE,out.height=1200, fig.height=100}
+DT::datatable(
+	bind_rows(
+	women_results %>%
+		tibble::add_column(sex = "women"),
+	men_results %>%
+		tibble::add_column(sex = "men")
+	) %>%
+		select(ATC_code, name, HR, HR_l, HR_u, pvals, p.adj.FDR, sex, N.nonpd, N.pd) %>%
+		mutate(across(HR:p.adj.FDR, ~ signif(.x, digits = 2))) %>% 
+		tidyr::unite("HR_CI", HR_l:HR_u, sep = "-"),
+	class = "compact",
+	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
+							 "p-value (FDR-adj.)", "sex", "# users without PD", "# users with PD"),
+	fillContainer = TRUE,
+	height = 2000,
+	width = '80%',
+	rownames = FALSE,
+	extensions = c('FixedHeader', 'Buttons'),
+	options = list(
+		scrollCollapse = FALSE,
+		fixedHeader = TRUE,
+		lengthMenu = c(50, 100, 200, 500, -1),
+		dom = 'Bfrtip',
+		buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+	)
+)
+```
+
+

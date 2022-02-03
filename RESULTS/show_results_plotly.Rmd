@@ -7,7 +7,9 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(include = FALSE)
+knitr::opts_chunk$set(
+	include = FALSE
+)
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -16,10 +18,16 @@ library(crosstalk)
 library(flexdashboard)
 library(purrr)
 library(tidyr)
+library(here)
 ```
 
 ```{r read_data}
-all.results <- read_csv("cur_results_all.csv")
+all.results <- read_csv(
+	here(
+		"DATA",
+		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_all.csv"
+		)
+	)
 ```
 
 > **RESULTS from Cox-regression analysis:**
@@ -40,33 +48,7 @@ cur.results <- all.results
 ```
 
 
-```{r plot_plotly,eval=FALSE,include=FALSE,echo=FALSE,warning=FALSE,out.height=1200,fig.height=1200}
-# create two columns: one for selection, the other for plot
-shared.atc <- SharedData$new(cur.results)
-
-bscols(widths = c(3, NA),
-	list(
-		filter_checkbox(id = "p-val_exclude", label = "(Unadjusted) P-value filtering",
-				sharedData = shared.atc, group = ~p.val.group, inline = TRUE),
-		filter_slider(id = "x_range", label = "HR filtering",
-				sharedData = shared.atc, column = ~HR, round = 1),
-		filter_checkbox(id = "atc_series", label = "ATC series filtering",
-				sharedData = shared.atc, group = ~group)
-	),
-	plot_ly(data = shared.atc, x = ~HR, y = ~ATC_code, text = ~hover.text,
-					 error_x = list(
-					 		array = ~HR_u, arrayminus = ~HR_l,
-					 		color = ~as.factor(group), symmetric = FALSE),
-					 height = 1200) %>%
-		add_markers(color = ~as.factor(group)) %>%
-		layout(xaxis = list(range = c(0,10),
-													mirror = "ticks"),
-						yaxis = list(title = list(text = "ATC code")))
-)
-
-```
-
-```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE, out.height=1200, fig.height=100}
+```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE, out.height='100%'}
 # create two columns: one for selection, the other for plot
 shared.atc <- SharedData$new(cur.results)
  
@@ -107,7 +89,7 @@ cur.results$ATC_code <- factor(cur.results$ATC_code,
 		levels = cur.results$ATC_code[ hr.order ], ordered = TRUE)
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height=1200,fig.height=100}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE, out.height='100%'}
 ```
 
 ### Sorted by p-value
@@ -119,7 +101,7 @@ cur.results$ATC_code <- factor(cur.results$ATC_code,
 		levels = cur.results$ATC_code[ pv.order ], ordered = TRUE)
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height=1200,fig.height=100}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE, out.height='100%'}
 ```
 
 
