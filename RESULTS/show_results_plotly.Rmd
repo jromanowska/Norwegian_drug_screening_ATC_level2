@@ -1,14 +1,17 @@
 ---
-title: "Interactive results"
+title: "Interactive results - Cox-regression analysis"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
+    vertical_layout: scroll
     theme: paper
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-	include = FALSE
+	include = FALSE,
+	fig.height = 15,
+	out.height = '100%'
 )
 library(readr)
 library(dplyr)
@@ -30,16 +33,16 @@ all.results <- read_csv(
 	)
 ```
 
-> **RESULTS from Cox-regression analysis:**
-
-> - exposure defined as min.2 prescriptions;
-> - age as the time scale;
-> - PD defined as 4 prescriptions of levodopa (+ reimbursement codes) **OR** mao-b inhibitors (N04BD);
-> - adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate.
-
-
 Column {.tabset}
 -----------------------------------------------------------------------
+
+### Information
+
+- exposure defined as min.2 prescriptions;
+- age as the time scale;
+- PD defined as 4 prescriptions of levodopa (+ reimbursement codes) **OR** mao-b inhibitors (N04BD);
+- adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate.
+
 
 ### Sorted by ATC code
 
@@ -48,7 +51,7 @@ cur.results <- all.results
 ```
 
 
-```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE, out.height='100%'}
+```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE}
 # create two columns: one for selection, the other for plot
 shared.atc <- SharedData$new(cur.results)
  
@@ -89,7 +92,7 @@ cur.results$ATC_code <- factor(cur.results$ATC_code,
 		levels = cur.results$ATC_code[ hr.order ], ordered = TRUE)
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE, out.height='100%'}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE}
 ```
 
 ### Sorted by p-value
@@ -101,14 +104,14 @@ cur.results$ATC_code <- factor(cur.results$ATC_code,
 		levels = cur.results$ATC_code[ pv.order ], ordered = TRUE)
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE, out.height='100%'}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE}
 ```
 
 
 ### Table view
 
 
-```{r table,include=TRUE,echo=FALSE,out.height=1200, fig.height=100}
+```{r table,include=TRUE,echo=FALSE}
 DT::datatable(
 	all.results %>%
 		select(ATC_code, name, HR, HR_l, HR_u, pvals, p.adj.FDR, N.nonpd, N.pd) %>%
@@ -118,8 +121,8 @@ DT::datatable(
 	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
 							 "p-value (FDR-adj.)", "# users without PD", "# users with PD"),
 	fillContainer = TRUE,
-	height = 2000,
-	width = '80%',
+	# height = 1200,
+	# width = '80%',
 	rownames = FALSE,
 	extensions = c('FixedHeader', 'Buttons'),
 	options = list(
