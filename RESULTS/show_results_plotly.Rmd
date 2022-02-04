@@ -10,8 +10,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	include = FALSE,
-	fig.height = 15,
-	out.height = '100%'
+	fig.height = 15#,
+	# out.height = '100%'
 )
 library(readr)
 library(dplyr)
@@ -121,7 +121,7 @@ DT::datatable(
 	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
 							 "p-value (FDR-adj.)", "# users without PD", "# users with PD"),
 	fillContainer = TRUE,
-	# height = 1200,
+	# height = '100%',
 	# width = '80%',
 	rownames = FALSE,
 	extensions = c('FixedHeader', 'Buttons'),
