@@ -6,7 +6,7 @@
 # SETUP --------------
 library(tidyverse)
 library(here)
-library(ggrepel)
+library(patchwork)
 
 # READ DATA --------------
 # all the results
@@ -62,38 +62,91 @@ drugs_per_group <- atc2level_all_compact %>%
 signif_per_group_all <- signif_per_group_all %>%
 	left_join(drugs_per_group) %>%
 	mutate(prcnt = n/drugs_per_group * 100) %>%
-	mutate(
-		prcnt = ifelse(
-			direction_change == "decrease",
-			yes = -prcnt,
-			no = prcnt
-		)
-	)
+	ungroup() %>%
+	mutate(group = as.factor(group))
 signif_per_group_all
 
-signif_per_group_all %>%
+prcnt_signif_incr <- signif_per_group_all %>%
+	filter(direction_change == "increase") %>%
+	# there were no drugs found to 'increase PD-risk' in L-group!
+	tibble::add_row(
+		group = "L",
+		direction_change = "increase",
+		signif = FALSE,
+		n = NA,
+		drugs_per_group = NA,
+		prcnt = 0
+	) %>%
 	ggplot(aes(group)) +
 	geom_col(aes(x = group, y = prcnt, fill = signif)) +
 	geom_label(
 		aes(
-			x = group, y = 0, label = group
+			x = group, y = -5, label = group
 		),
 		position = position_dodge(width = 1)
 	) +
-	# scale_color_manual(values = c("black", "white")) +
-	# annotate("label", x = 1, y = 20, label = "non-significant") +
+	# geom_text(
+	# 	aes(x = group, y = prcnt, label = as.character(n)),
+	# ) +
 	scale_fill_manual(
-		values = c("grey30", "grey70")
+		values = c("grey70", "grey30"),
+		name = "significant?",
+		labels = c("no", "yes")
 	) +
 	coord_flip() +
-	facet_grid(cols = vars(direction_change), scales = "free_x") +
 	theme_minimal() +
-	scale_y_continuous(expand = c(0,0)) +
+	scale_y_continuous(
+		expand = c(0,0),
+		limits = c(-8, 100),
+		breaks = seq(0, 100, 25),
+		labels = paste0(seq(0, 100, 25), "%")
+	) +
+	labs(title = "increasing PD-risk") +
 	theme(
 		panel.grid = element_blank(),
 		axis.title.y = element_blank(),
+		axis.title.x = element_blank(),
 		axis.text.y = element_blank(),
-		panel.spacing.x = unit(0, units = "cm")
+		panel.spacing.x = unit(0, units = "cm"),
+		legend.position = c(0.9, 0.9),
+		plot.title = element_text(hjust = 0.3)
 	)
 
+prcnt_signif_decr <- signif_per_group_all %>%
+	filter(direction_change == "decrease") %>%
+	ggplot(aes(group)) +
+	geom_col(aes(x = group, y = -prcnt, fill = signif)) +
+	scale_fill_manual(
+		values = c("grey70", "grey30")
+	) +
+	coord_flip() +
+	theme_minimal() +
+	scale_y_continuous(
+		expand = c(0,0),
+		limits = c(-100, 0),
+		breaks = seq(-100, 0, 25),
+		labels = paste0(seq(100, 0, -25), "%")
+	) +
+	labs(title = "decreasing PD-risk") +
+	theme(
+		panel.grid = element_blank(),
+		axis.title.y = element_blank(),
+		axis.title.x = element_blank(),
+		axis.text.y = element_blank(),
+		panel.spacing.x = unit(0, units = "cm"),
+		legend.position = "none",
+		plot.margin = unit(c(5.5, 0, 5.5, 5.5), units = "points"),
+		plot.title = element_text(hjust = 0.7)
+	)
+
+prcnt_signif_decr + prcnt_signif_incr +
+	plot_layout(widths = c(0.9, 1)) +
+	plot_annotation(
+		title = "Percentage of drugs in each ATC group that were found\n to change the risk of Parkinson's disease (PD)",
+		theme = theme(title = element_text(face = "bold", size = 12))
+	)
+
+ggsave(here("FIGURES", "prcnt_drugs_per_ATC_group_risk_change.png"))
+
+# 2.
 
