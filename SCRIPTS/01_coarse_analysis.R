@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED:
+# DATE MODIFIED: 2022-02-14
 
 # SETUP --------------
 library(tidyverse)
@@ -9,6 +9,18 @@ library(here)
 library(patchwork)
 
 # READ DATA --------------
+# official ATC descriptions + DDD
+atc_descr <- read_csv(
+	here("DATA", "2020_ATC_Index_with_DDDs_electronic_version.csv")
+	) %>%
+	rename_with(~ str_replace_all(
+		.x,
+		pattern = fixed(" "),
+		replacement = fixed("_")
+	)
+	)
+atc_descr
+
 # all the results
 atc2level_all <- read_csv(
 	here(
@@ -77,27 +89,29 @@ prcnt_signif_incr <- signif_per_group_all %>%
 		drugs_per_group = NA,
 		prcnt = 0
 	) %>%
-	ggplot(aes(group)) +
-	geom_col(aes(x = group, y = prcnt, fill = signif)) +
+	ggplot(aes(x = group, y = prcnt, fill = signif)) +
+	geom_col(aes()) +
 	geom_label(
 		aes(
 			x = group, y = -5, label = group
 		),
-		position = position_dodge(width = 1)
+		position = position_dodge(width = 1),
+		inherit.aes = FALSE
 	) +
-	# geom_text(
-	# 	aes(x = group, y = prcnt, label = as.character(n)),
-	# ) +
 	scale_fill_manual(
 		values = c("grey70", "grey30"),
 		name = "significant?",
 		labels = c("no", "yes")
 	) +
 	coord_flip() +
+	geom_text(
+		aes(label = as.character(n)),
+		position = position_stack(vjust = 0.5, reverse = FALSE)
+	) +
 	theme_minimal() +
 	scale_y_continuous(
 		expand = c(0,0),
-		limits = c(-8, 100),
+		limits = c(-8, 105),
 		breaks = seq(0, 100, 25),
 		labels = paste0(seq(0, 100, 25), "%")
 	) +
@@ -108,22 +122,26 @@ prcnt_signif_incr <- signif_per_group_all %>%
 		axis.title.x = element_blank(),
 		axis.text.y = element_blank(),
 		panel.spacing.x = unit(0, units = "cm"),
-		legend.position = c(0.9, 0.9),
+		legend.position = c(0.7, 0.95),
 		plot.title = element_text(hjust = 0.3)
 	)
 
 prcnt_signif_decr <- signif_per_group_all %>%
 	filter(direction_change == "decrease") %>%
-	ggplot(aes(group)) +
-	geom_col(aes(x = group, y = -prcnt, fill = signif)) +
+	ggplot(aes(x = group, y = -prcnt, fill = signif)) +
+	geom_col() +
 	scale_fill_manual(
 		values = c("grey70", "grey30")
 	) +
 	coord_flip() +
+	geom_text(
+		aes(label = as.character(n)),
+		position = position_stack(vjust = 0.5, reverse = FALSE)
+	) +
 	theme_minimal() +
 	scale_y_continuous(
 		expand = c(0,0),
-		limits = c(-100, 0),
+		limits = c(-105, 0),
 		breaks = seq(-100, 0, 25),
 		labels = paste0(seq(100, 0, -25), "%")
 	) +
@@ -148,5 +166,23 @@ prcnt_signif_decr + prcnt_signif_incr +
 
 ggsave(here("FIGURES", "prcnt_drugs_per_ATC_group_risk_change.png"))
 
-# 2.
+# which groups are which?
+signif_per_group_all <- signif_per_group_all %>%
+	left_join(
+		atc_descr %>% select(ATC_code, ATC_level_name),
+		by = c("group" = "ATC_code")
+	)
+summary_atc_group_tbl <- signif_per_group_all %>%
+		distinct(group, ATC_level_name, drugs_per_group) %>%
+		mutate(ATC_level_name = str_to_title(ATC_level_name)) %>%
+		select(group, ATC_level_name, drugs_per_group)
+
+knitr::kable(summary_atc_group_tbl)
+
+latex_table <- knitr::kable(
+	summary_atc_group_tbl,
+	format = "latex"
+)
+
+# 2. 
 
