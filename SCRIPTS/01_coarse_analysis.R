@@ -7,6 +7,7 @@
 library(tidyverse)
 library(here)
 library(patchwork)
+library(gt)
 
 # READ DATA --------------
 # official ATC descriptions + DDD
@@ -55,7 +56,7 @@ atc2level_women_compact <- atc2level_women %>%
 	select(-(coeff:CI.low), -p.val.group, -users.group, -hover.text)
 
 # ANALYSE --------------
-# 1. how many significant per group?
+# 1. how many significant per group? ----
 signif_per_group_all <- atc2level_all_compact %>%
 	mutate(signif = p.adj.FDR < 0.05) %>%
 	mutate(
@@ -164,7 +165,11 @@ prcnt_signif_decr + prcnt_signif_incr +
 		theme = theme(title = element_text(face = "bold", size = 12))
 	)
 
-ggsave(here("FIGURES", "prcnt_drugs_per_ATC_group_risk_change.png"))
+ggsave(
+	here("FIGURES", "prcnt_drugs_per_ATC_group_risk_change.png"),
+	width = 9,
+	height = 5
+)
 
 # which groups are which?
 signif_per_group_all <- signif_per_group_all %>%
@@ -184,5 +189,123 @@ latex_table <- knitr::kable(
 	format = "latex"
 )
 
-# 2. 
+# 2. Ordering of significant results ----
+atc2level_signif_compact <- atc2level_all_compact %>%
+	filter(p.adj.FDR < 0.05) %>%
+	mutate(
+		direction_change = ifelse(
+			HR < 1,
+			yes = "decrease",
+			no = "increase"
+		),
+		name = str_to_title(name)
+	) %>%
+	arrange(p.adj.FDR)
+
+atc2level_signif_incr <- atc2level_signif_compact %>%
+	filter(direction_change == "increase") %>%
+	arrange(p.adj.FDR) %>%
+	select(ATC_code, name, HR:N.pd)
+
+atc2level_signif_decr <- atc2level_signif_compact %>%
+	filter(direction_change == "decrease") %>%
+	arrange(p.adj.FDR) %>%
+	select(ATC_code, name, HR:N.pd)
+
+# nice latex tables
+atc2level_signif_gt <- gt(
+		data = atc2level_signif_compact %>%
+		select(ATC_code, name, HR:N.pd),
+		groupname_col = "direction_change"
+	) %>%
+	tab_row_group(
+		label = "drugs increasing PD risk",
+		rows = HR > 1
+	) %>%
+	tab_row_group(
+		label = "drugs decreasing PD risk",
+		rows = HR < 1
+	) %>%
+	cols_merge_range(
+		col_begin = HR_l,
+		col_end = HR_u
+	) %>%
+	cols_label(
+		ATC_code = "symbol",
+		name = "description",
+		HR_l = "95% CI",
+		p.adj.FDR = "FDR p-value",
+		N.nonpd = "non-PD users",
+		N.pd = "PD users"
+	) %>%
+	tab_spanner(
+		label = "ATC sub-group",
+		columns = c(ATC_code, name)
+	) %>%
+	tab_spanner(
+		label = "Cox hazard risk (HR) estimates",
+		columns = HR:p.adj.FDR
+	) %>%
+	tab_spanner(
+		label = "# of users",
+		columns = starts_with("N.")
+	) %>%
+	tab_style(
+		style = cell_borders(sides = "right", color = "gray30"),
+		locations = cells_body(
+			columns = c(name, p.adj.FDR)
+		)
+	) %>%
+	tab_style(
+		style = cell_text(style = "italic"),
+		locations = cells_body(
+			columns = name
+		)
+	) %>%
+	tab_style(
+		style = cell_text(weight = "bold"),
+		locations = cells_column_labels()
+	) %>%
+	tab_style(
+		style = cell_text(weight = "bold"),
+		locations = cells_column_spanners()
+	) %>%
+	tab_style(
+		style = list(
+			cell_text(align = "center"),
+			cell_fill()
+			),
+		locations = cells_row_groups()
+	) %>%
+	fmt_number(
+		columns = starts_with("HR")
+	) %>%
+	fmt_scientific(
+		columns = p.adj.FDR
+	) %>%
+	fmt_number(
+		columns = starts_with("N."),
+		decimals = 0,
+		use_seps = TRUE
+	) %>%
+	cols_width(
+		name ~ px(150)
+	) %>%
+	tab_footnote(
+		footnote = "p-value adjusted for false discovery rate",
+		locations = cells_column_labels(columns = p.adj.FDR)
+	)
+atc2level_signif_gt
+
+atc2level_signif_gt_latex <- as_latex(atc2level_signif_gt)
+# cat(as.character(atc2level_signif_gt_latex))
+
+# 3. How many per each group per direction of change?
+gt(
+	atc2level_signif_compact %>%
+	group_by(direction_change) %>%
+	count(group) %>%
+	arrange(direction_change, desc(n))
+)
+# this is not so interesting...
 
