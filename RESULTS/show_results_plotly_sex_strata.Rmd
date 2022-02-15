@@ -347,8 +347,8 @@ DT::datatable(
 	class = "compact",
 	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
 							 "p-value (FDR-adj.)", "sex", "# users without PD", "# users with PD"),
-	fillContainer = TRUE,
-	height = '100%',
+	# fillContainer = TRUE,
+	height = '600px',
 	width = '80%',
 	rownames = FALSE,
 	extensions = c('FixedHeader', 'Buttons'),
@@ -357,7 +357,8 @@ DT::datatable(
 		fixedHeader = TRUE,
 		lengthMenu = c(50, 100, 200, 500, -1),
 		dom = 'Bfrtip',
-		buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+		buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+		max.height = '600px'
 	)
 )
 ```
