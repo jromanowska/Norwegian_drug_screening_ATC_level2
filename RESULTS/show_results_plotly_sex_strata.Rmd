@@ -8,7 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(include = FALSE)
+knitr::opts_chunk$set(include = FALSE,out.height=800, fig.height=30)
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -39,17 +39,20 @@ men_results <- read_csv(
 	)
 ```
 
-**RESULTS from Cox-regression analysis:**
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### RESULTS from Cox-regression analysis:
 
 - exposure defined as min.2 prescriptions;
 - age as the time scale;
-- PD defined as 4 prescriptions of levodopa (+ reimbursement codes) **OR** mao-b inhibitors (N04BD);
-- adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate;
+- PD defined as any of:
+    - min.4 prescriptions of levodopa (NO4BA) + any prescription with PD reimbursement code (ICD10 code G20 or ICPC code 16)
+    - min.4 prescriptions of mao-b inhibitors (N04BD);
+    
+- adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate (FDR);
 - stratified by sex.
 
-
-Column {.tabset}
------------------------------------------------------------------------
 
 ### Sorted by ATC code
 
@@ -66,7 +69,7 @@ unique_ATC_codes <- cur_results %>%
 ```
 
 
-```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE, out.height='100%'}
+```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE}
 # create two columns: one for selection, the other for plot
 shared.atc <- SharedData$new(cur_results)
  
@@ -139,7 +142,7 @@ cur_results$ATC_code <- factor(
 )
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE}
 ```
 
 ### Sorted by p-value
@@ -176,7 +179,7 @@ cur_results$ATC_code <- factor(
 )
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE}
 ```
 
 ### Comparison between sexes
@@ -207,7 +210,7 @@ cur_results$ATC_code <- factor(
 ```
 
 
-```{r plot_diff_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
+```{r plot_diff_ggplotly,include=TRUE,echo=FALSE,warning=FALSE, out.width = 800, fig.width = 10}
 clrs <- list(men = "#bad744", women = "#5b8124")
 
 # create label on the top result
@@ -265,17 +268,17 @@ plot_sex_diff <- ggplot(cur_results,
   	size = 2, color = "grey60", colour_x = clrs$women,
   	colour_xend = clrs$men
   ) +
-	# geom_point_interactive(
-	# 	aes(tooltip = hover.text_women),
-	geom_point(
-		aes(text = hover.text_women),
+	geom_point_interactive(
+		aes(tooltip = hover.text_women),
+	# geom_point(
+	# 	aes(text = hover.text_women),
 		size = 4,
 		color = clrs$women
 	) +
-	# geom_point_interactive(
-	# 	aes(y = ATC_code, x = HR_men, tooltip = hover.text_men),
-	geom_point(
-		aes(y = ATC_code, x = HR_men, text = hover.text_men),
+	geom_point_interactive(
+	 	aes(y = ATC_code, x = HR_men, tooltip = hover.text_men),
+	# geom_point(
+	# 	aes(y = ATC_code, x = HR_men, text = hover.text_men),
 		size = 4,
 		color = clrs$men
 	) +
@@ -310,16 +313,18 @@ plot_sex_diff <- ggplot(cur_results,
   			axis.text.y = element_text(size = 8))
 
 # plot interactive
-ggplotly(
-	plot_sex_diff,
-	height = nrow(cur_results) * 10,
-	tooltip = c("y", "text")
-)
+# ggplotly(
+# 	plot_sex_diff,
+# 	height = nrow(cur_results) * 10,
+# 	tooltip = c("y", "text")
+# )
 girafe(
 	ggobj = plot_sex_diff,
 	width_svg = 10,
 	height_svg = 12,
-	pointsize = 10
+	pointsize = 10,
+	setdims = TRUE,
+	width = 10
 )
 
 ```
@@ -328,7 +333,7 @@ girafe(
 ### Table view
 
 
-```{r table,include=TRUE,echo=FALSE,out.height=1200, fig.height=100}
+```{r table,include=TRUE,echo=FALSE}
 DT::datatable(
 	bind_rows(
 	women_results %>%
@@ -343,7 +348,7 @@ DT::datatable(
 	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
 							 "p-value (FDR-adj.)", "sex", "# users without PD", "# users with PD"),
 	fillContainer = TRUE,
-	height = 2000,
+	height = '100%',
 	width = '80%',
 	rownames = FALSE,
 	extensions = c('FixedHeader', 'Buttons'),
