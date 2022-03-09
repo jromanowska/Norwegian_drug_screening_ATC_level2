@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results; sex-stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-14
-# DATE MODIFIED: 2022-02-14
+# DATE MODIFIED: 2022-03-09
 
 # SETUP --------------
 library(tidyverse)
@@ -239,7 +239,132 @@ ggsave(
 )
 
 # 2. Ordering of significant results ----
-atc2level_signif_compact <- atc2level_women_compact %>%
+create_latex_table_signif_res <- function(data_in){
+	atc2level_signif_compact <- data_in %>%
+		filter(p.adj.FDR < 0.05) %>%
+		mutate(
+			direction_change = ifelse(
+				HR < 1,
+				yes = "decrease",
+				no = "increase"
+			),
+			name = str_to_title(name)
+		) %>%
+		arrange(p.adj.FDR)
+	
+	# nice latex table
+	atc2level_signif_gt <- gt(
+			data = atc2level_signif_compact %>%
+			select(ATC_code, name, HR:N.pd),
+			groupname_col = "direction_change"
+		) %>%
+		tab_row_group(
+			label = "drugs increasing PD risk",
+			rows = HR > 1
+		) %>%
+		tab_row_group(
+			label = "drugs decreasing PD risk",
+			rows = HR < 1
+		) %>%
+		cols_merge_range(
+			col_begin = HR_l,
+			col_end = HR_u
+		) %>%
+		cols_label(
+			ATC_code = "symbol",
+			name = "description",
+			HR_l = "95% CI",
+			p.adj.FDR = "FDR p-value",
+			N.nonpd = "non-PD users",
+			N.pd = "PD users"
+		) %>%
+		tab_spanner(
+			label = "ATC sub-group",
+			columns = c(ATC_code, name)
+		) %>%
+		tab_spanner(
+			label = "Cox hazard risk (HR) estimates",
+			columns = HR:p.adj.FDR
+		) %>%
+		tab_spanner(
+			label = "# of users",
+			columns = starts_with("N.")
+		) %>%
+		tab_style(
+			style = cell_borders(sides = "right", color = "gray30"),
+			locations = cells_body(
+				columns = c(name, p.adj.FDR)
+			)
+		) %>%
+		tab_style(
+			style = cell_text(style = "italic"),
+			locations = cells_body(
+				columns = name
+			)
+		) %>%
+		tab_style(
+			style = cell_text(weight = "bold"),
+			locations = cells_column_labels()
+		) %>%
+		tab_style(
+			style = cell_text(weight = "bold"),
+			locations = cells_column_spanners()
+		) %>%
+		tab_style(
+			style = list(
+				cell_text(align = "center"),
+				cell_fill()
+				),
+			locations = cells_row_groups()
+		) %>%
+		fmt_number(
+			columns = starts_with("HR")
+		) %>%
+		fmt_scientific(
+			columns = p.adj.FDR
+		) %>%
+		fmt_number(
+			columns = starts_with("N."),
+			decimals = 0,
+			use_seps = TRUE
+		) %>%
+		cols_width(
+			name ~ px(150)
+		) %>%
+		tab_footnote(
+			footnote = "p-value adjusted for false discovery rate",
+			locations = cells_column_labels(columns = p.adj.FDR)
+		)
+	
+	return(atc2level_signif_gt)
+}
+
+atc2level_signif_women_gt_latex <- as_latex(
+	create_latex_table_signif_res(atc2level_women_compact)
+)
+write_lines(
+	as.character(atc2level_signif_women_gt_latex),
+	file = here("RESULTS", "signif_res_women_nice_table.tex")
+)
+
+atc2level_signif_men_gt_latex <- as_latex(
+	create_latex_table_signif_res(atc2level_men_compact)
+)
+write_lines(
+	as.character(atc2level_signif_men_gt_latex),
+	file = here("RESULTS", "signif_res_men_nice_table.tex")
+)
+
+
+# 3. How many significant findings are significant in both women and men? ----
+atc2level_all_compact <- atc2level_men_compact %>%
+	tibble::add_column(sex = "male") %>%
+	bind_rows(
+		atc2level_women_compact %>%
+		tibble::add_column(sex = "female")
+	)
+	
+atc2level_signif_compact <- atc2level_all_compact %>%
 	filter(p.adj.FDR < 0.05) %>%
 	mutate(
 		direction_change = ifelse(
@@ -250,112 +375,41 @@ atc2level_signif_compact <- atc2level_women_compact %>%
 		name = str_to_title(name)
 	) %>%
 	arrange(p.adj.FDR)
+atc2level_signif_compact
 
-atc2level_signif_incr <- atc2level_signif_compact %>%
-	filter(direction_change == "increase") %>%
-	arrange(p.adj.FDR) %>%
-	select(ATC_code, name, HR:N.pd)
+duplicated_res <- atc2level_signif_compact %>%
+	count(ATC_code) %>%
+	filter(n > 1) %>%
+	distinct(ATC_code) %>%
+	pull()
+duplicated_res
+length(duplicated_res)
 
-atc2level_signif_decr <- atc2level_signif_compact %>%
-	filter(direction_change == "decrease") %>%
-	arrange(p.adj.FDR) %>%
-	select(ATC_code, name, HR:N.pd)
-
-# nice latex tables
-atc2level_signif_gt <- gt(
-		data = atc2level_signif_compact %>%
-		select(ATC_code, name, HR:N.pd),
-		groupname_col = "direction_change"
-	) %>%
-	tab_row_group(
-		label = "drugs increasing PD risk",
-		rows = HR > 1
-	) %>%
-	tab_row_group(
-		label = "drugs decreasing PD risk",
-		rows = HR < 1
-	) %>%
-	cols_merge_range(
-		col_begin = HR_l,
-		col_end = HR_u
-	) %>%
-	cols_label(
-		ATC_code = "symbol",
-		name = "description",
-		HR_l = "95% CI",
-		p.adj.FDR = "FDR p-value",
-		N.nonpd = "non-PD users",
-		N.pd = "PD users"
-	) %>%
-	tab_spanner(
-		label = "ATC sub-group",
-		columns = c(ATC_code, name)
-	) %>%
-	tab_spanner(
-		label = "Cox hazard risk (HR) estimates",
-		columns = HR:p.adj.FDR
-	) %>%
-	tab_spanner(
-		label = "# of users",
-		columns = starts_with("N.")
-	) %>%
-	tab_style(
-		style = cell_borders(sides = "right", color = "gray30"),
-		locations = cells_body(
-			columns = c(name, p.adj.FDR)
-		)
-	) %>%
-	tab_style(
-		style = cell_text(style = "italic"),
-		locations = cells_body(
-			columns = name
-		)
-	) %>%
-	tab_style(
-		style = cell_text(weight = "bold"),
-		locations = cells_column_labels()
-	) %>%
-	tab_style(
-		style = cell_text(weight = "bold"),
-		locations = cells_column_spanners()
-	) %>%
-	tab_style(
-		style = list(
-			cell_text(align = "center"),
-			cell_fill()
-			),
-		locations = cells_row_groups()
-	) %>%
-	fmt_number(
-		columns = starts_with("HR")
-	) %>%
-	fmt_scientific(
-		columns = p.adj.FDR
-	) %>%
-	fmt_number(
-		columns = starts_with("N."),
-		decimals = 0,
-		use_seps = TRUE
-	) %>%
-	cols_width(
-		name ~ px(150)
-	) %>%
-	tab_footnote(
-		footnote = "p-value adjusted for false discovery rate",
-		locations = cells_column_labels(columns = p.adj.FDR)
-	)
-atc2level_signif_gt
-
-atc2level_signif_gt_latex <- as_latex(atc2level_signif_gt)
-# cat(as.character(atc2level_signif_gt_latex))
-
-# 3. How many per each group per direction of change? ----
-gt(
+knitr::kable(
 	atc2level_signif_compact %>%
-	group_by(direction_change) %>%
-	count(group) %>%
-	arrange(direction_change, desc(n))
+		filter(ATC_code %in% duplicated_res) %>%
+		arrange(ATC_code, sex, direction_change)
 )
-# this is not so interesting...
 
-# 4. 
+# check whether any of these results change direction
+atc2level_signif_compact %>%
+	filter(ATC_code %in% duplicated_res) %>%
+	arrange(ATC_code, sex, direction_change) %>%
+	group_by(ATC_code) %>%
+	count(direction_change)
+# NOPE!
+
+knitr::kable(
+	atc2level_signif_compact %>%
+		filter(ATC_code %in% duplicated_res) %>%
+		distinct(ATC_code, direction_change) %>%
+		count(direction_change),
+	caption = "How many significant in each direction?"
+)
+
+# which where decreasing, which increasing?
+atc2level_signif_compact %>%
+	filter(ATC_code %in% duplicated_res) %>%
+	arrange(direction_change, ATC_code) %>%
+	distinct(ATC_code, direction_change)
+

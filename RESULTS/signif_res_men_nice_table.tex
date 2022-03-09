@@ -1,0 +1,38 @@
+\captionsetup[table]{labelformat=empty,skip=1pt}
+\begin{longtable}{llrrrrr}
+\toprule
+\multicolumn{2}{c}{ATC sub-group} & \multicolumn{3}{c}{Cox hazard risk (HR) estimates} & \multicolumn{2}{c}{\# of users} \\ 
+ \cmidrule(lr){1-2} \cmidrule(lr){3-5} \cmidrule(lr){6-7}
+symbol & description & HR & 95\% CI & FDR p-value\textsuperscript{1} & non-PD users & PD users \\ 
+\midrule
+\multicolumn{1}{l}{drugs decreasing PD risk} \\ 
+\midrule
+C09 & Agents Acting On The Renin-Angiotensin System & $0.84$ & $0.80$–$0.88$ & $2.71 \times 10^{-11}$ & $506,463$ & $2,881$ \\ 
+H02 & Corticosteroids For Systemic Use & $0.78$ & $0.73$–$0.84$ & $3.59 \times 10^{-9}$ & $309,717$ & $789$ \\ 
+N07 & Other Nervous System Drugs & $0.52$ & $0.43$–$0.64$ & $3.59 \times 10^{-9}$ & $78,014$ & $105$ \\ 
+R03 & Drugs For Obstructive Airway Diseases & $0.83$ & $0.78$–$0.88$ & $4.42 \times 10^{-7}$ & $416,936$ & $1,107$ \\ 
+J01 & Antibacterials For Systemic Use & $0.88$ & $0.84$–$0.92$ & $7.83 \times 10^{-7}$ & $1,519,653$ & $4,296$ \\ 
+S03 & Ophthalmological And Otological Preparations & $0.76$ & $0.67$–$0.86$ & $3.05 \times 10^{-4}$ & $101,935$ & $269$ \\ 
+C10 & Lipid Modifying Agents & $0.92$ & $0.88$–$0.96$ & $7.60 \times 10^{-3}$ & $481,802$ & $3,024$ \\ 
+L04 & Immunosuppressants & $0.74$ & $0.62$–$0.88$ & $2.13 \times 10^{-2}$ & $52,789$ & $121$ \\ 
+C08 & Calcium Channel Blockers & $0.91$ & $0.86$–$0.96$ & $2.58 \times 10^{-2}$ & $269,643$ & $1,631$ \\ 
+\midrule
+\multicolumn{1}{l}{drugs increasing PD risk} \\ 
+\midrule
+N06 & Psychoanaleptics & $1.90$ & $1.80$–$2.01$ & $1.29 \times 10^{-119}$ & $362,791$ & $1,714$ \\ 
+G04 & Urologicals & $1.35$ & $1.28$–$1.41$ & $5.57 \times 10^{-33}$ & $415,305$ & $2,792$ \\ 
+N05 & Psycholeptics & $1.28$ & $1.22$–$1.35$ & $3.83 \times 10^{-23}$ & $573,976$ & $2,611$ \\ 
+A06 & Drugs For Constipation & $1.42$ & $1.27$–$1.59$ & $3.67 \times 10^{-8}$ & $95,563$ & $329$ \\ 
+S01 & Ophthalmologicals & $1.13$ & $1.08$–$1.19$ & $6.74 \times 10^{-6}$ & $766,724$ & $2,680$ \\ 
+N03 & Antiepileptics & $1.25$ & $1.15$–$1.37$ & $3.49 \times 10^{-5}$ & $142,650$ & $509$ \\ 
+A11 & Vitamins & $1.20$ & $1.11$–$1.30$ & $9.33 \times 10^{-5}$ & $195,900$ & $727$ \\ 
+H01 & Pituitary And Hypothalamic Hormones And Analogues & $1.75$ & $1.32$–$2.32$ & $2.73 \times 10^{-3}$ & $24,289$ & $49$ \\ 
+D01 & Antifungals For Dermatological Use & $1.14$ & $1.06$–$1.22$ & $7.34 \times 10^{-3}$ & $272,250$ & $933$ \\ 
+C01 & Cardiac Therapy & $1.11$ & $1.04$–$1.18$ & $2.69 \times 10^{-2}$ & $176,606$ & $1,180$ \\ 
+ \bottomrule
+\end{longtable}
+\vspace{-5mm}
+\begin{minipage}{\linewidth}
+\textsuperscript{1}p-value adjusted for false discovery rate \\ 
+\end{minipage}
+
