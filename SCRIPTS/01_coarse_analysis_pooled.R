@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2022-02-14
+# DATE MODIFIED: 2022-05-04
 
 # SETUP --------------
 library(tidyverse)
@@ -56,7 +56,7 @@ signif_per_group_all <- signif_per_group_all %>%
 	left_join(drugs_per_group) %>%
 	mutate(prcnt = n/drugs_per_group * 100) %>%
 	ungroup() %>%
-	mutate(group = as.factor(group))
+	mutate(group = forcats::fct_rev(as.factor(group)))
 signif_per_group_all
 
 prcnt_signif_incr <- signif_per_group_all %>%
@@ -70,6 +70,7 @@ prcnt_signif_incr <- signif_per_group_all %>%
 		drugs_per_group = NA,
 		prcnt = 0
 	) %>%
+	mutate(group = forcats::fct_rev(as.factor(group))) %>%
 	ggplot(aes(x = group, y = prcnt, fill = signif)) +
 	geom_col(aes()) +
 	geom_label(
@@ -103,7 +104,7 @@ prcnt_signif_incr <- signif_per_group_all %>%
 		axis.title.x = element_blank(),
 		axis.text.y = element_blank(),
 		panel.spacing.x = unit(0, units = "cm"),
-		legend.position = c(0.7, 0.95),
+		legend.position = c(0.8, 0.95),
 		plot.title = element_text(hjust = 0.3)
 	)
 
@@ -195,7 +196,8 @@ atc2level_signif_decr <- atc2level_signif_compact %>%
 # nice latex tables
 atc2level_signif_gt <- gt(
 		data = atc2level_signif_compact %>%
-		select(ATC_code, name, HR:N.pd),
+			arrange(direction_change, HR, ATC_code) %>%
+			select(ATC_code, name, HR:N.pd),
 		groupname_col = "direction_change"
 	) %>%
 	tab_row_group(
