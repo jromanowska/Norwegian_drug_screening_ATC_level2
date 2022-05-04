@@ -59,6 +59,13 @@ signif_per_group_all <- signif_per_group_all %>%
 	mutate(group = forcats::fct_rev(as.factor(group)))
 signif_per_group_all
 
+# write down for further use
+write_delim(
+	signif_per_group_all,
+	here("DATA", "signif_res_pooled_grouped.txt"),
+	delim = "\t"
+)
+
 prcnt_signif_incr <- signif_per_group_all %>%
 	filter(direction_change == "increase") %>%
 	# there were no drugs found to 'increase PD-risk' in L-group!
@@ -182,6 +189,13 @@ atc2level_signif_compact <- atc2level_all_compact %>%
 		name = str_to_title(name)
 	) %>%
 	arrange(p.adj.FDR)
+
+# save for later use
+write_delim(
+	atc2level_signif_compact,
+	here("DATA", "signif_res_pooled_all.txt"),
+	delim = "\t"
+)
 
 atc2level_signif_incr <- atc2level_signif_compact %>%
 	filter(direction_change == "increase") %>%
