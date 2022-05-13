@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results; sex-stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-14
-# DATE MODIFIED: 2022-03-09
+# DATE MODIFIED: 2022-05-13
 
 # SETUP --------------
 library(tidyverse)
@@ -21,6 +21,13 @@ atc_descr <- read_csv(
 	)
 	)
 atc_descr
+
+# pooled analysis (to compare afterwards)
+atc2level_signif_pooled <- read_delim(
+	here("DATA", "signif_res_pooled_all.txt"),
+	delim = "\t"
+)
+atc2level_signif_pooled
 
 # sex-stratified
 atc2level_men <- read_csv(
@@ -238,7 +245,7 @@ ggsave(
 	height = 10
 )
 
-# 2. Ordering of significant results ----
+## 2. Ordering of significant results ----
 create_latex_table_signif_res <- function(data_in){
 	atc2level_signif_compact <- data_in %>%
 		filter(p.adj.FDR < 0.05) %>%
@@ -356,7 +363,7 @@ write_lines(
 )
 
 
-# 3. How many significant findings are significant in both women and men? ----
+## 3. How many significant findings are significant in both women and men? ----
 atc2level_all_compact <- atc2level_men_compact %>%
 	tibble::add_column(sex = "male") %>%
 	bind_rows(
@@ -413,3 +420,161 @@ atc2level_signif_compact %>%
 	arrange(direction_change, ATC_code) %>%
 	distinct(ATC_code, direction_change)
 
+## 4. How the significant results from pooled analysis compare to the sex-strat? ----
+atc2level_signif_compare_pool_strat <- atc2level_signif_pooled %>%
+	left_join(
+		atc2level_all_compact %>%
+			select(ATC_code, pvals, HR:p.adj.FDR, sex) %>%
+			pivot_wider(
+				id_cols = ATC_code,
+				names_from = sex,
+				values_from = pvals:p.adj.FDR
+			),
+		by = "ATC_code"
+	)
+
+
+strat_compare_pool_gt <- gt(
+	data = atc2level_signif_compare_pool_strat %>% 
+	  # arrange according to pooled results:
+		arrange(direction_change, HR) %>%
+		select(-starts_with("pvals"), -(group:N.pd)) %>%
+		# reorder columns:
+		select(ATC_code, name, direction_change,
+					 ends_with("_male"), ends_with("_female")),
+	groupname_col = "direction_change"
+	) %>%
+	cols_merge_range(
+		col_begin = HR_l_male,
+		col_end = HR_u_male
+	) %>%
+	cols_merge_range(
+		col_begin = HR_l_female,
+		col_end = HR_u_female
+	) %>%
+	cols_label(
+		ATC_code = "symbol",
+		name = "description",
+		HR_male = "HR",
+		HR_female = "HR",
+		HR_l_male = "95% CI",
+		HR_l_female = "95% CI",
+		p.adj.FDR_male = "FDR p-value",
+		p.adj.FDR_female = "FDR p-value"
+	) %>%
+	tab_spanner(
+		label = "males",
+		columns = HR_male:p.adj.FDR_male
+	) %>%
+	tab_spanner(
+		label = "females",
+		columns = HR_female:p.adj.FDR_female
+	)%>%
+	tab_spanner(
+		label = "ATC sub-group",
+		columns = c(ATC_code, name)
+	) %>%
+	tab_spanner(
+		label = "Cox hazard risk (HR) estimates",
+		columns = HR_male:p.adj.FDR_female
+	)  %>%
+	tab_style(
+		style = cell_borders(sides = "right", color = "gray30"),
+		locations = cells_body(
+			columns = c(name, p.adj.FDR_male)
+		)
+	) %>%
+	tab_style(
+		style = cell_text(style = "italic"),
+		locations = cells_body(
+			columns = name
+		)
+	) %>%
+	tab_style(
+		style = cell_text(weight = "bold"),
+		locations = cells_column_labels()
+	) %>%
+	tab_style(
+		style = cell_text(weight = "bold"),
+		locations = cells_column_spanners()
+	) %>%
+	tab_style(
+		style = list(
+			cell_text(align = "center"),
+			cell_fill()
+			),
+		locations = cells_row_groups()
+	) %>%
+	fmt_number(
+		columns = starts_with("HR")
+	) %>%
+	fmt_scientific(
+		columns = starts_with("p.adj.FDR")
+	) %>%
+	cols_width(
+		name ~ px(150)
+	) %>%
+	tab_footnote(
+		footnote = "p-value adjusted for false discovery rate",
+		locations = cells_column_labels(columns = starts_with("p.adj.FDR"))
+	)
+strat_compare_pool_gt
+
+strat_compare_pool_latex <- as_latex(
+	strat_compare_pool_gt
+)
+write_lines(
+	as.character(strat_compare_pool_latex),
+	file = here("RESULTS", "signif_res_compare_sex_nice_table.tex")
+)
+
+### 4A. Plot the comparison ----
+atc2level_signif_compare_pool_strat_4plotting <-
+	atc2level_signif_compare_pool_strat %>% 
+	  # arrange according to pooled results:
+		arrange(direction_change, HR) %>%
+		# reorder columns:
+		select(ATC_code, name, direction_change,
+					 -starts_with("pvals"), HR, HR_l, HR_u, p.adj.FDR,
+					 -N.nonpd, -N.pd,
+					 ends_with("_male"), ends_with("_female"),
+					 group
+					 )
+atc2level_signif_compare_pool_strat_4plotting
+
+nice_colors <- sanzo::sanzo.trio("c232")
+names_categ <- c("pooled", "females", "males")
+names(nice_colors) <- names_categ
+
+ggplot(
+	atc2level_signif_compare_pool_strat_4plotting %>%
+		pivot_longer(
+			cols = c(HR, HR_male, HR_female),
+			names_to = "estimate_cat",
+			values_to = "HR"
+		),
+	aes(HR, ATC_code)
+) +
+	geom_vline(xintercept = 1, color = "gray40", lwd = 0.8) +
+	geom_segment(
+		data = atc2level_signif_compare_pool_strat_4plotting,
+		aes(
+			x = HR_male,
+			xend = HR_female,
+			y = ATC_code,
+			yend = ATC_code
+		),
+		color = as.character(nice_colors[1])
+	) +
+	geom_point(aes(color = estimate_cat), size = 1.8) +
+	scale_color_manual(
+		values = nice_colors,
+		name = "HR estimate",
+		labels = names_categ
+	) +
+	scale_x_continuous(trans = "log") +
+	theme_minimal()
+
+ggsave(
+	here("FIGURES", "compare_estimates_pooled_sex-strat_signif.png")
+)
