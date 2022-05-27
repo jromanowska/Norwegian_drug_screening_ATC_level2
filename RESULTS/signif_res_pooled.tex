@@ -1,0 +1,48 @@
+\captionsetup[table]{labelformat=empty,skip=1pt}
+\setlength{\LTpost}{0mm}
+\begin{longtable}{llrrrrr}
+\toprule
+\multicolumn{2}{c}{ATC sub-group} & \multicolumn{2}{c}{\# of users} & \multicolumn{3}{c}{Cox hazard risk (HR) estimates} \\ 
+\cmidrule(lr){1-2} \cmidrule(lr){3-4} \cmidrule(lr){5-7}
+symbol & description & non-PD users & PD users & HR & 95\% CI & FDR p-value\textsuperscript{1} \\ 
+\midrule
+\multicolumn{1}{l}{drugs decreasing PD risk} \\ 
+\midrule
+D02 & Emollients And Protectives & $64,351$ & $18$ & $0.45$ & $0.28$–$0.72$ & $1.65 \times 10^{-2}$ \\ 
+N07 & Other Nervous System Drugs & $162,212$ & $200$ & $0.61$ & $0.53$–$0.70$ & $1.15 \times 10^{-10}$ \\ 
+L01 & Antineoplastic Agents & $47,843$ & $63$ & $0.67$ & $0.52$–$0.86$ & $2.38 \times 10^{-2}$ \\ 
+S03 & Ophthalmological And Otological Preparations & $226,930$ & $484$ & $0.79$ & $0.72$–$0.87$ & $1.50 \times 10^{-5}$ \\ 
+P01 & Antiprotozoals & $296,651$ & $466$ & $0.81$ & $0.74$–$0.89$ & $2.31 \times 10^{-4}$ \\ 
+L04 & Immunosuppressants & $119,518$ & $254$ & $0.82$ & $0.72$–$0.92$ & $2.16 \times 10^{-2}$ \\ 
+H02 & Corticosteroids For Systemic Use & $697,923$ & $1,529$ & $0.82$ & $0.78$–$0.87$ & $2.48 \times 10^{-11}$ \\ 
+R03 & Drugs For Obstructive Airway Diseases & $914,396$ & $1,977$ & $0.82$ & $0.78$–$0.86$ & $7.26 \times 10^{-14}$ \\ 
+C09 & Agents Acting On The Renin-Angiotensin System & $988,090$ & $4,715$ & $0.86$ & $0.83$–$0.89$ & $7.26 \times 10^{-14}$ \\ 
+J07 & Vaccines & $314,146$ & $567$ & $0.87$ & $0.80$–$0.94$ & $1.35 \times 10^{-2}$ \\ 
+J01 & Antibacterials For Systemic Use & $3,332,744$ & $7,643$ & $0.88$ & $0.85$–$0.91$ & $1.52 \times 10^{-11}$ \\ 
+D07 & Corticosteroids, Dermatological Preparations & $1,164,306$ & $3,014$ & $0.90$ & $0.87$–$0.94$ & $1.90 \times 10^{-5}$ \\ 
+R05 & Cough And Cold Preparations & $1,367,764$ & $3,373$ & $0.91$ & $0.87$–$0.95$ & $5.46 \times 10^{-5}$ \\ 
+C08 & Calcium Channel Blockers & $538,810$ & $2,656$ & $0.92$ & $0.88$–$0.96$ & $1.73 \times 10^{-3}$ \\ 
+C10 & Lipid Modifying Agents & $896,892$ & $4,910$ & $0.94$ & $0.91$–$0.98$ & $2.39 \times 10^{-2}$ \\ 
+\midrule
+\multicolumn{1}{l}{drugs increasing PD risk} \\ 
+\midrule
+S01 & Ophthalmologicals & $1,785,386$ & $4,922$ & $1.08$ & $1.04$–$1.12$ & $7.77 \times 10^{-4}$ \\ 
+B01 & Antithrombotic Agents & $1,024,704$ & $5,859$ & $1.09$ & $1.05$–$1.13$ & $1.92 \times 10^{-4}$ \\ 
+B03 & Antianemic Preparations & $477,944$ & $1,431$ & $1.09$ & $1.03$–$1.16$ & $2.39 \times 10^{-2}$ \\ 
+D01 & Antifungals For Dermatological Use & $503,005$ & $1,374$ & $1.11$ & $1.05$–$1.17$ & $4.20 \times 10^{-3}$ \\ 
+C01 & Cardiac Therapy & $337,842$ & $1,823$ & $1.13$ & $1.07$–$1.19$ & $5.50 \times 10^{-5}$ \\ 
+C07 & Beta Blocking Agents & $768,698$ & $4,481$ & $1.15$ & $1.11$–$1.19$ & $2.20 \times 10^{-11}$ \\ 
+A11 & Vitamins & $484,141$ & $1,257$ & $1.17$ & $1.10$–$1.24$ & $8.45 \times 10^{-6}$ \\ 
+M05 & Drugs For Treatment Of Bone Diseases & $168,500$ & $857$ & $1.22$ & $1.13$–$1.31$ & $2.27 \times 10^{-6}$ \\ 
+N05 & Psycholeptics & $1,427,793$ & $5,512$ & $1.31$ & $1.26$–$1.36$ & $6.22 \times 10^{-48}$ \\ 
+N03 & Antiepileptics & $324,746$ & $986$ & $1.34$ & $1.25$–$1.43$ & $1.49 \times 10^{-16}$ \\ 
+G04 & Urologicals & $529,429$ & $3,370$ & $1.39$ & $1.33$–$1.45$ & $1.29 \times 10^{-52}$ \\ 
+A06 & Drugs For Constipation & $215,584$ & $588$ & $1.48$ & $1.36$–$1.61$ & $5.12 \times 10^{-18}$ \\ 
+H01 & Pituitary And Hypothalamic Hormones And Analogues & $98,048$ & $81$ & $1.62$ & $1.30$–$2.01$ & $3.33 \times 10^{-4}$ \\ 
+N06 & Psychoanaleptics & $923,115$ & $3,428$ & $1.79$ & $1.72$–$1.86$ & $6.78 \times 10^{-182}$ \\ 
+\bottomrule
+\end{longtable}
+\begin{minipage}{\linewidth}
+\textsuperscript{1}p-value adjusted for false discovery rate\\
+\end{minipage}
+

@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2022-05-04
+# DATE MODIFIED: 2022-05-27
 
 # SETUP --------------
 library(tidyverse)
@@ -147,11 +147,7 @@ prcnt_signif_decr <- signif_per_group_all %>%
 	)
 
 prcnt_signif_decr + prcnt_signif_incr +
-	plot_layout(widths = c(0.9, 1)) +
-	plot_annotation(
-		title = "Percentage of drugs in each ATC group that were found\n to change the risk of Parkinson's disease (PD)",
-		theme = theme(title = element_text(face = "bold", size = 12))
-	)
+	plot_layout(widths = c(0.9, 1))
 
 ggsave(
 	here("FIGURES", "prcnt_drugs_per_ATC_group_risk_change.png"),
@@ -211,7 +207,7 @@ atc2level_signif_decr <- atc2level_signif_compact %>%
 atc2level_signif_gt <- gt(
 		data = atc2level_signif_compact %>%
 			arrange(direction_change, HR, ATC_code) %>%
-			select(ATC_code, name, HR:N.pd),
+			select(ATC_code, name, N.nonpd, N.pd, HR:p.adj.FDR),
 		groupname_col = "direction_change"
 	) %>%
 	tab_row_group(
@@ -294,7 +290,10 @@ atc2level_signif_gt <- gt(
 atc2level_signif_gt
 
 atc2level_signif_gt_latex <- as_latex(atc2level_signif_gt)
-# cat(as.character(atc2level_signif_gt_latex))
+write_lines(
+	atc2level_signif_gt_latex,
+	file = here("RESULTS", "signif_res_pooled.tex")
+)
 
 ## 3. How many per each group per direction of change? ----
 gt(
