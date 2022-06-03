@@ -56,7 +56,13 @@ signif_per_group_all <- signif_per_group_all %>%
 	left_join(drugs_per_group) %>%
 	mutate(prcnt = n/drugs_per_group * 100) %>%
 	ungroup() %>%
-	mutate(group = forcats::fct_rev(as.factor(group)))
+	mutate(group = forcats::fct_rev(as.factor(group))) %>%
+	left_join(
+		atc_descr %>%
+			select(ATC_code, ATC_level_name),
+		by = c("group" = "ATC_code")
+	) %>%
+	mutate(ATC_level_name = stringr::str_to_sentence(ATC_level_name))
 signif_per_group_all
 
 # write down for further use
@@ -75,7 +81,12 @@ prcnt_signif_incr <- signif_per_group_all %>%
 		signif = FALSE,
 		n = NA,
 		drugs_per_group = NA,
-		prcnt = 0
+		prcnt = 0,
+		ATC_level_name = stringr::str_to_sentence(
+			atc_descr %>%
+				filter(ATC_code == "L") %>%
+				pull(ATC_level_name)
+		)
 	) %>%
 	mutate(group = forcats::fct_rev(as.factor(group))) %>%
 	ggplot(aes(x = group, y = prcnt, fill = signif)) +
