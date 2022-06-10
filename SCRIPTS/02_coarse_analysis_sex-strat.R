@@ -539,7 +539,10 @@ atc2level_signif_compare_pool_strat_4plotting <-
 					 -N.nonpd, -N.pd,
 					 ends_with("_male"), ends_with("_female"),
 					 group
-					 )
+					 ) %>%
+		mutate(ATC_code = factor(
+			ATC_code, levels = sort(unique(ATC_code), decreasing = TRUE)
+		))
 atc2level_signif_compare_pool_strat_4plotting
 
 nice_colors <- sanzo::sanzo.trio("c232")
@@ -568,11 +571,17 @@ ggplot(
 	) +
 	geom_point(aes(color = estimate_cat), size = 1.8) +
 	scale_color_manual(
-		values = nice_colors,
+		values = as.character(nice_colors),
 		name = "HR estimate",
 		labels = names_categ
 	) +
-	scale_x_continuous(trans = "log") +
+	scale_x_continuous(
+		trans = "log",
+		breaks = c(0.3, 0.6, 1.0, 1.5, 2.0),
+		labels = as.character(c(0.3, 0.6, 1.0, 1.5, 2.0))
+	) +
+	xlab("log(HR)") +
+	ylab("ATC group") +
 	theme_minimal()
 
 ggsave(
