@@ -1,13 +1,14 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2022-05-27
+# DATE MODIFIED: 2022-08-02
 
 # SETUP --------------
 library(tidyverse)
 library(here)
 library(patchwork)
 library(gt)
+library(ggiraph)
 
 # READ DATA --------------
 # official ATC descriptions + DDD
@@ -315,4 +316,28 @@ gt(
 )
 # this is not so interesting...
 
-## 4. 
+## 4. Plot HR per ATC group ----
+ATC_order_by_HR <- atc2level_all_compact %>%
+	arrange(HR) %>%
+	pull(ATC_code)
+
+plot_all <- ggplot(
+	atc2level_all_compact %>%
+		mutate(
+			ATC_code = 
+					 	factor(ATC_code, levels = ATC_order_by_HR, ordered = TRUE),
+			hover_text = paste0(
+				ATC_code, ", HR: ", HR
+			)
+		),
+	aes(x = HR, y = ATC_code)
+	) +
+	geom_vline(xintercept = 1) +
+	geom_pointrange_interactive(
+		aes(xmin = HR_l, xmax = HR_u, color = p.adj.FDR < 0.05, tooltip = hover_text),
+		size = 0.5
+	) +
+	scale_x_continuous(trans = "log") +
+	scale_color_manual(values = c("gray80", "gray20")) + # colors for significant vs. non-significant
+	theme_minimal()
+girafe(ggobj = plot_all, width_svg = 7, height = 9)
