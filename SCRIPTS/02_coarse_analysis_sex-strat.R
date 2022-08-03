@@ -587,3 +587,53 @@ ggplot(
 ggsave(
 	here("FIGURES", "compare_estimates_pooled_sex-strat_signif.png")
 )
+
+### 4B. Plot for Julia's poster ----
+ATC_order_by_HR <- atc2level_signif_pooled %>%
+	arrange(HR) %>%
+	pull(ATC_code)
+
+label <- atc2level_signif_pooled %>%
+	distinct(ATC_code, name) %>%
+	mutate(label = paste0(ATC_code, " (", name, ")")) %>%
+	pull(label)
+names(label) <- atc2level_signif_pooled %>%
+	distinct(ATC_code) %>%
+	pull(ATC_code)
+
+atc2level_signif_compare_pool_strat_4poster <- atc2level_signif_pooled %>%
+	tibble::add_column(stratum = "pooled") %>%
+	bind_rows(
+		atc2level_all_compact %>%
+			filter(ATC_code %in% ATC_order_by_HR) %>%
+			rename(stratum = sex)
+	) %>%
+	mutate(
+		signif = p.adj.FDR < 0.05,
+		ATC_code = factor(ATC_code, levels = ATC_order_by_HR, ordered = TRUE)
+	)
+atc2level_signif_compare_pool_strat_4poster
+
+compare_colors <- c("salmon", "navy", "gray40")
+
+ggplot(
+	atc2level_signif_compare_pool_strat_4poster,
+	aes(HR, stratum)
+	) +
+	geom_vline(xintercept = 1) +
+	geom_pointrange(aes(xmin = HR_l, xmax = HR_u, color = stratum)) +
+	facet_grid(
+		rows = vars(ATC_code),
+		labeller = as_labeller(label)
+		#labeller = labeller(label = label_value(vars(label)))
+	) +
+	scale_x_continuous(trans = "log") +
+	scale_color_manual(values = compare_colors) +
+	theme_minimal() +
+	theme(
+		axis.title.y = element_blank(),
+		axis.text.y = element_blank(),
+		strip.text.y = element_text(angle = 0, hjust = 0),
+		legend.position = c(0.2, 0.2)
+	)
+ggsave(filename = here("FIGURES", "pooled_compare_sex_4poster.png"), height = 8, width = 10)
