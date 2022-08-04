@@ -614,20 +614,23 @@ atc2level_signif_compare_pool_strat_4poster <- atc2level_signif_pooled %>%
 	)
 atc2level_signif_compare_pool_strat_4poster
 
-compare_colors <- c("salmon", "navy", "gray40")
+compare_colors <- c("salmon", "navy", "gray30")
 
 ggplot(
 	atc2level_signif_compare_pool_strat_4poster,
 	aes(HR, stratum)
 	) +
 	geom_vline(xintercept = 1) +
-	geom_pointrange(aes(xmin = HR_l, xmax = HR_u, color = stratum)) +
+	geom_pointrange(aes(xmin = HR_l, xmax = HR_u, color = stratum), size = 0.3) +
 	facet_grid(
 		rows = vars(ATC_code),
 		labeller = as_labeller(label)
 		#labeller = labeller(label = label_value(vars(label)))
 	) +
-	scale_x_continuous(trans = "log") +
+	scale_x_continuous(
+		trans = "log",
+		breaks = c(0.2, 0.4, 0.8, 1, 1.3, 1.6, 2.1)
+	) +
 	scale_color_manual(values = compare_colors) +
 	theme_minimal() +
 	theme(
@@ -636,4 +639,5 @@ ggplot(
 		strip.text.y = element_text(angle = 0, hjust = 0),
 		legend.position = c(0.2, 0.2)
 	)
-ggsave(filename = here("FIGURES", "pooled_compare_sex_4poster.png"), height = 8, width = 10)
+ggsave(filename = here("FIGURES", "pooled_compare_sex_4poster.png"),
+			 height = 8, width = 10)
