@@ -433,6 +433,12 @@ atc2level_signif_compare_pool_strat <- atc2level_signif_pooled %>%
 		by = "ATC_code"
 	)
 
+# save for late use
+write_delim(
+	atc2level_signif_compare_pool_strat,
+	file = here("DATA", "signif_res_compare_pool_strat.txt"),
+	delim = "\t"
+)
 
 strat_compare_pool_gt <- gt(
 	data = atc2level_signif_compare_pool_strat %>% 
