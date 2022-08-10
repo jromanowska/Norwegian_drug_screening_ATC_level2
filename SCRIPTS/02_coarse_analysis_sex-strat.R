@@ -621,7 +621,7 @@ ggplot(
 	aes(HR, stratum)
 	) +
 	geom_vline(xintercept = 1) +
-	geom_pointrange(aes(xmin = HR_l, xmax = HR_u, color = stratum), size = 0.3) +
+	geom_pointrange(aes(xmin = HR_l, xmax = HR_u, color = stratum), size = 1.3) +
 	facet_grid(
 		rows = vars(ATC_code),
 		labeller = as_labeller(label)
@@ -637,7 +637,11 @@ ggplot(
 		axis.title.y = element_blank(),
 		axis.text.y = element_blank(),
 		strip.text.y = element_text(angle = 0, hjust = 0),
-		legend.position = c(0.2, 0.2)
+		legend.position = c(0.2, 0.2),
+		text = element_text(size = 30)
 	)
-ggsave(filename = here("FIGURES", "pooled_compare_sex_4poster.png"),
-			 height = 8, width = 10)
+ggsave(
+	filename = here("FIGURES", "pooled_compare_sex_4poster.png"),
+	# filename = here("FIGURES", "pooled_compare_sex_4poster.svg"),
+	height = 20, width = 25
+)
