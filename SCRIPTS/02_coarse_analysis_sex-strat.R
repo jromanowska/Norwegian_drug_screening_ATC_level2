@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results; sex-stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-14
-# DATE MODIFIED: 2022-05-13
+# DATE MODIFIED: 2022-08-16
 
 # SETUP --------------
 library(tidyverse)
@@ -552,7 +552,7 @@ atc2level_signif_compare_pool_strat_4plotting <-
 atc2level_signif_compare_pool_strat_4plotting
 
 nice_colors <- sanzo::sanzo.trio("c232")
-names_categ <- c("pooled", "females", "males")
+names_categ <- c("not stratified", "females only", "males only")
 names(nice_colors) <- names_categ
 
 ggplot(
@@ -578,7 +578,7 @@ ggplot(
 	geom_point(aes(color = estimate_cat), size = 1.8) +
 	scale_color_manual(
 		values = as.character(nice_colors),
-		name = "HR estimate",
+		name = "analysis type",
 		labels = names_categ
 	) +
 	scale_x_continuous(
@@ -586,7 +586,7 @@ ggplot(
 		breaks = c(0.3, 0.6, 1.0, 1.5, 2.0),
 		labels = as.character(c(0.3, 0.6, 1.0, 1.5, 2.0))
 	) +
-	xlab("log(HR)") +
+	xlab("HR") +
 	ylab("ATC group") +
 	theme_minimal()
 
