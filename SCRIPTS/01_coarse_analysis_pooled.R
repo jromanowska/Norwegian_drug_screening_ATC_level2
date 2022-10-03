@@ -20,7 +20,8 @@ atc_descr <- read_csv(
 		pattern = fixed(" "),
 		replacement = fixed("_")
 	)
-	)
+	) %>%
+	mutate(ATC_level_name = stringr::str_to_sentence(ATC_level_name))
 atc_descr
 
 # all the results
@@ -170,7 +171,7 @@ ggsave(
 # which groups are which?
 signif_per_group_all <- signif_per_group_all %>%
 	left_join(
-		atc_descr %>% select(ATC_code, ATC_level_name),
+		atc_descr %>% select(ATC_code),
 		by = c("group" = "ATC_code")
 	)
 summary_atc_group_tbl <- signif_per_group_all %>%

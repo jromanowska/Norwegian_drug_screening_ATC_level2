@@ -1,0 +1,41 @@
+group	direction_change	signif	n	drugs_per_group	prcnt	ATC_level_name
+A	decrease	FALSE	5	14	35.714285714285715	Alimentary tract and metabolism
+A	increase	FALSE	6	14	42.857142857142854	Alimentary tract and metabolism
+A	increase	TRUE	3	14	21.428571428571427	Alimentary tract and metabolism
+B	decrease	FALSE	2	4	50	Blood and blood forming organs
+B	increase	TRUE	2	4	50	Blood and blood forming organs
+C	decrease	FALSE	4	9	44.44444444444444	Cardiovascular system
+C	decrease	TRUE	2	9	22.22222222222222	Cardiovascular system
+C	increase	FALSE	1	9	11.11111111111111	Cardiovascular system
+C	increase	TRUE	2	9	22.22222222222222	Cardiovascular system
+D	decrease	FALSE	3	11	27.27272727272727	Dermatologicals
+D	decrease	TRUE	2	11	18.181818181818183	Dermatologicals
+D	increase	FALSE	5	11	45.45454545454545	Dermatologicals
+D	increase	TRUE	1	11	9.090909090909092	Dermatologicals
+G	decrease	FALSE	2	4	50	Genito urinary system and sex hormones
+G	increase	FALSE	1	4	25	Genito urinary system and sex hormones
+G	increase	TRUE	1	4	25	Genito urinary system and sex hormones
+H	decrease	FALSE	1	5	20	Systemic hormonal preparations, excl. Sex hormones and insulins
+H	decrease	TRUE	1	5	20	Systemic hormonal preparations, excl. Sex hormones and insulins
+H	increase	FALSE	2	5	40	Systemic hormonal preparations, excl. Sex hormones and insulins
+H	increase	TRUE	1	5	20	Systemic hormonal preparations, excl. Sex hormones and insulins
+J	decrease	FALSE	2	6	33.33333333333333	Antiinfectives for systemic use
+J	decrease	TRUE	2	6	33.33333333333333	Antiinfectives for systemic use
+J	increase	FALSE	2	6	33.33333333333333	Antiinfectives for systemic use
+L	decrease	FALSE	2	4	50	Antineoplastic and immunomodulating agents
+L	decrease	TRUE	2	4	50	Antineoplastic and immunomodulating agents
+M	decrease	FALSE	2	5	40	Musculo-skeletal system
+M	increase	FALSE	2	5	40	Musculo-skeletal system
+M	increase	TRUE	1	5	20	Musculo-skeletal system
+N	decrease	FALSE	1	6	16.666666666666664	Nervous system
+N	decrease	TRUE	1	6	16.666666666666664	Nervous system
+N	increase	TRUE	4	6	66.66666666666666	Nervous system
+P	decrease	TRUE	1	2	50	Antiparasitic products, insecticides and repellents
+P	increase	FALSE	1	2	50	Antiparasitic products, insecticides and repellents
+R	decrease	TRUE	2	4	50	Respiratory system
+R	increase	FALSE	2	4	50	Respiratory system
+S	decrease	FALSE	1	3	33.33333333333333	Sensory organs
+S	decrease	TRUE	1	3	33.33333333333333	Sensory organs
+S	increase	TRUE	1	3	33.33333333333333	Sensory organs
+V	decrease	FALSE	3	5	60	Various
+V	increase	FALSE	2	5	40	Various
