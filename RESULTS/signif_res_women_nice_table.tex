@@ -1,36 +1,37 @@
 \captionsetup[table]{labelformat=empty,skip=1pt}
+\setlength{\LTpost}{0mm}
 \begin{longtable}{llrrrrr}
 \toprule
 \multicolumn{2}{c}{ATC sub-group} & \multicolumn{3}{c}{Cox hazard risk (HR) estimates} & \multicolumn{2}{c}{\# of users} \\ 
- \cmidrule(lr){1-2} \cmidrule(lr){3-5} \cmidrule(lr){6-7}
+\cmidrule(lr){1-2} \cmidrule(lr){3-5} \cmidrule(lr){6-7}
 symbol & description & HR & 95\% CI & FDR p-value\textsuperscript{1} & non-PD users & PD users \\ 
 \midrule
 \multicolumn{1}{l}{drugs decreasing PD risk} \\ 
 \midrule
-R05 & Cough And Cold Preparations & $0.81$ & $0.76$–$0.86$ & $1.78 \times 10^{-10}$ & $808,413$ & $1,450$ \\ 
-R03 & Drugs For Obstructive Airway Diseases & $0.81$ & $0.76$–$0.88$ & $1.63 \times 10^{-6}$ & $497,460$ & $870$ \\ 
-J01 & Antibacterials For Systemic Use & $0.88$ & $0.84$–$0.93$ & $2.73 \times 10^{-4}$ & $1,813,091$ & $3,347$ \\ 
-D07 & Corticosteroids, Dermatological Preparations & $0.87$ & $0.81$–$0.92$ & $3.50 \times 10^{-4}$ & $644,970$ & $1,226$ \\ 
-C09 & Agents Acting On The Renin-Angiotensin System & $0.89$ & $0.84$–$0.95$ & $4.20 \times 10^{-3}$ & $481,627$ & $1,834$ \\ 
-P01 & Antiprotozoals & $0.77$ & $0.67$–$0.88$ & $4.21 \times 10^{-3}$ & $196,598$ & $209$ \\ 
-H02 & Corticosteroids For Systemic Use & $0.87$ & $0.81$–$0.94$ & $1.15 \times 10^{-2}$ & $388,206$ & $740$ \\ 
+R05 & Cough And Cold Preparations & $0.82$ & $0.77$–$0.87$ & $3.92 \times 10^{-9}$ & $808,413$ & $1,450$ \\ 
+R03 & Drugs For Obstructive Airway Diseases & $0.82$ & $0.77$–$0.89$ & $9.12 \times 10^{-6}$ & $497,460$ & $870$ \\ 
+D07 & Corticosteroids, Dermatological Preparations & $0.88$ & $0.82$–$0.94$ & $2.04 \times 10^{-3}$ & $644,970$ & $1,226$ \\ 
+P01 & Antiprotozoals & $0.77$ & $0.67$–$0.89$ & $8.01 \times 10^{-3}$ & $196,598$ & $209$ \\ 
+J01 & Antibacterials For Systemic Use & $0.91$ & $0.86$–$0.96$ & $1.23 \times 10^{-2}$ & $1,813,091$ & $3,347$ \\ 
+H02 & Corticosteroids For Systemic Use & $0.88$ & $0.82$–$0.95$ & $3.64 \times 10^{-2}$ & $388,206$ & $740$ \\ 
+C09 & Agents Acting On The Renin-Angiotensin System & $0.91$ & $0.86$–$0.97$ & $3.80 \times 10^{-2}$ & $481,627$ & $1,834$ \\ 
 \midrule
 \multicolumn{1}{l}{drugs increasing PD risk} \\ 
 \midrule
-N06 & Psychoanaleptics & $1.66$ & $1.57$–$1.76$ & $6.94 \times 10^{-65}$ & $560,324$ & $1,714$ \\ 
-G04 & Urologicals & $1.63$ & $1.49$–$1.77$ & $1.10 \times 10^{-25}$ & $114,124$ & $578$ \\ 
-N05 & Psycholeptics & $1.34$ & $1.27$–$1.41$ & $1.58 \times 10^{-23}$ & $853,817$ & $2,901$ \\ 
-C07 & Beta Blocking Agents & $1.29$ & $1.22$–$1.37$ & $1.73 \times 10^{-15}$ & $388,130$ & $1,803$ \\ 
-N03 & Antiepileptics & $1.45$ & $1.32$–$1.59$ & $1.48 \times 10^{-12}$ & $182,096$ & $477$ \\ 
-A06 & Drugs For Constipation & $1.56$ & $1.38$–$1.77$ & $2.40 \times 10^{-10}$ & $120,021$ & $259$ \\ 
-M05 & Drugs For Treatment Of Bone Diseases & $1.22$ & $1.12$–$1.32$ & $5.76 \times 10^{-5}$ & $144,407$ & $722$ \\ 
-B01 & Antithrombotic Agents & $1.13$ & $1.07$–$1.20$ & $1.43 \times 10^{-3}$ & $490,160$ & $2,060$ \\ 
-N02 & Analgesics & $1.12$ & $1.06$–$1.18$ & $1.70 \times 10^{-3}$ & $1,278,945$ & $2,858$ \\ 
-C01 & Cardiac Therapy & $1.18$ & $1.08$–$1.28$ & $3.96 \times 10^{-3}$ & $161,236$ & $643$ \\ 
- \bottomrule
+N06 & Psychoanaleptics & $1.69$ & $1.59$–$1.79$ & $1.81 \times 10^{-68}$ & $560,324$ & $1,714$ \\ 
+G04 & Urologicals & $1.65$ & $1.51$–$1.80$ & $4.11 \times 10^{-27}$ & $114,124$ & $578$ \\ 
+N05 & Psycholeptics & $1.36$ & $1.29$–$1.44$ & $4.11 \times 10^{-27}$ & $853,817$ & $2,901$ \\ 
+C07 & Beta Blocking Agents & $1.31$ & $1.24$–$1.39$ & $8.77 \times 10^{-18}$ & $388,130$ & $1,803$ \\ 
+N03 & Antiepileptics & $1.46$ & $1.33$–$1.61$ & $2.45 \times 10^{-13}$ & $182,096$ & $477$ \\ 
+A06 & Drugs For Constipation & $1.58$ & $1.39$–$1.79$ & $6.19 \times 10^{-11}$ & $120,021$ & $259$ \\ 
+M05 & Drugs For Treatment Of Bone Diseases & $1.24$ & $1.14$–$1.34$ & $9.12 \times 10^{-6}$ & $144,407$ & $722$ \\ 
+B01 & Antithrombotic Agents & $1.15$ & $1.09$–$1.22$ & $5.64 \times 10^{-5}$ & $490,160$ & $2,060$ \\ 
+N02 & Analgesics & $1.14$ & $1.08$–$1.20$ & $5.64 \times 10^{-5}$ & $1,278,945$ & $2,858$ \\ 
+C01 & Cardiac Therapy & $1.20$ & $1.10$–$1.30$ & $9.43 \times 10^{-4}$ & $161,236$ & $643$ \\ 
+A12 & Mineral Supplements & $1.13$ & $1.05$–$1.22$ & $1.81 \times 10^{-2}$ & $287,061$ & $910$ \\ 
+\bottomrule
 \end{longtable}
-\vspace{-5mm}
 \begin{minipage}{\linewidth}
-\textsuperscript{1}p-value adjusted for false discovery rate \\ 
+\textsuperscript{1}p-value adjusted for false discovery rate\\
 \end{minipage}
 
