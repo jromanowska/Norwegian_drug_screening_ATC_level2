@@ -219,7 +219,7 @@ atc2level_signif_decr <- atc2level_signif_compact %>%
 # nice latex tables
 atc2level_signif_gt <- gt(
 		data = atc2level_signif_compact %>%
-			arrange(direction_change, HR, ATC_code) %>%
+			arrange(direction_change, p.adj.FDR, ATC_code) %>%
 			select(ATC_code, name, N.nonpd, N.pd, HR:p.adj.FDR),
 		groupname_col = "direction_change"
 	) %>%

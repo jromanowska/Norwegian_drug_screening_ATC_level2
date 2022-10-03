@@ -443,7 +443,7 @@ write_delim(
 strat_compare_pool_gt <- gt(
 	data = atc2level_signif_compare_pool_strat %>% 
 	  # arrange according to pooled results:
-		arrange(direction_change, HR) %>%
+		arrange(direction_change, p.adj.FDR) %>%
 		select(-starts_with("pvals"), -(group:N.pd)) %>%
 		# reorder columns:
 		select(ATC_code, name, direction_change,
