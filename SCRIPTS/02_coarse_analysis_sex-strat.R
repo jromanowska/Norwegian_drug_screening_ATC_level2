@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results; sex-stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-14
-# DATE MODIFIED: 2022-08-16
+# DATE MODIFIED: 2022-10-06
 
 # SETUP --------------
 library(tidyverse)
@@ -608,7 +608,7 @@ names(label) <- atc2level_signif_pooled %>%
 	pull(ATC_code)
 
 atc2level_signif_compare_pool_strat_4poster <- atc2level_signif_pooled %>%
-	tibble::add_column(stratum = "pooled") %>%
+	tibble::add_column(stratum = "all") %>%
 	bind_rows(
 		atc2level_all_compact %>%
 			filter(ATC_code %in% ATC_order_by_HR) %>%
@@ -620,10 +620,10 @@ atc2level_signif_compare_pool_strat_4poster <- atc2level_signif_pooled %>%
 	)
 atc2level_signif_compare_pool_strat_4poster
 
-compare_colors <- c("salmon", "navy", "gray30")
-
 ggplot(
-	atc2level_signif_compare_pool_strat_4poster,
+	atc2level_signif_compare_pool_strat_4poster %>%
+		mutate(stratum = factor(stratum, levels = c("male", "female", "all"),
+														ordered = TRUE)),
 	aes(HR, stratum)
 	) +
 	geom_vline(xintercept = 1) +
@@ -637,7 +637,12 @@ ggplot(
 		trans = "log",
 		breaks = c(0.2, 0.4, 0.8, 1, 1.3, 1.6, 2.1)
 	) +
-	scale_color_manual(values = compare_colors) +
+	scale_color_brewer(
+		type = "qual",
+		palette = "Paired",
+		breaks = c("all", "female", "male"),
+		name = ""
+	) +
 	theme_minimal() +
 	theme(
 		axis.title.y = element_blank(),
