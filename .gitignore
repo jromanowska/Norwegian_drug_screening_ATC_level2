@@ -4,6 +4,5 @@
 .Ruserdata
 *.Rproj
 FIGURES
-*.html
 *.pptx
 *.rds
