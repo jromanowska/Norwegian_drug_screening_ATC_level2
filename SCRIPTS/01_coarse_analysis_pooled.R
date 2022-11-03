@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2022-08-02
+# DATE MODIFIED: 2022-11-03
 
 # SETUP --------------
 library(tidyverse)
@@ -130,6 +130,7 @@ prcnt_signif_incr <- signif_per_group_all %>%
 
 prcnt_signif_decr <- signif_per_group_all %>%
 	filter(direction_change == "decrease") %>%
+	mutate(group = forcats::fct_rev(as.factor(group))) %>%
 	ggplot(aes(x = group, y = -prcnt, fill = signif)) +
 	geom_col() +
 	scale_fill_manual(
