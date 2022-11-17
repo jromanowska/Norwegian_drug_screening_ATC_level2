@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2022-11-03
+# DATE MODIFIED: 2022-11-17
 
 # SETUP --------------
 library(tidyverse)
@@ -343,3 +343,42 @@ plot_all <- ggplot(
 	scale_color_manual(values = c("gray80", "gray20")) + # colors for significant vs. non-significant
 	theme_minimal()
 girafe(ggobj = plot_all, width_svg = 7, height = 9)
+
+## 5. MANHATTAN-LIKE PLOT ----
+gray_scale <- c('1' = "black", '0' = "gray70")
+
+atc2level_all_compact %>%
+	# creating a special variable for alternative coloring
+	mutate(stripe_color = as.numeric(as.factor(group))) %>%
+	mutate(stripe_color = as.character(stripe_color%%2)) %>%
+ggplot(aes(ATC_code, -log10(p.adj.FDR))) +
+	geom_point(aes(color = stripe_color)) +
+	scale_color_manual(
+		values = gray_scale,
+		guide = "none"
+	) +
+	geom_hline(
+		yintercept = -log10(0.05),
+		linetype = 2,
+		col = "grey40"
+	) +
+	facet_grid(
+		cols = vars(group),
+		scales = "free_x",
+		space = "free",
+		switch = "x"
+	) +
+	# scale_y_continuous(trans = y_transform) +
+	ylab("-log10(pvals)") +
+	xlab("ATC class") +
+	theme_minimal() +
+	theme(
+		axis.text.x = element_text(angle = 90),
+		# axis.title.x = element_blank(),
+		strip.placement = "outside",
+		panel.spacing.x = unit(1, units = "points")
+	)
+
+ggsave(
+	here("FIGURES", "manhattan_plot_all_res_pooled.png")
+)
