@@ -564,7 +564,7 @@ ggplot(
 		),
 	aes(HR, ATC_code)
 ) +
-	geom_vline(xintercept = 1, color = "gray40", lwd = 0.8) +
+	geom_vline(xintercept = 1, color = "gray40", linewidth = 0.8) +
 	geom_segment(
 		data = atc2level_signif_compare_pool_strat_4plotting,
 		aes(
@@ -649,11 +649,12 @@ ggplot(
 		axis.title.y = element_blank(),
 		axis.text.y = element_blank(),
 		strip.text.y = element_text(angle = 0, hjust = 0),
+		panel.spacing.y = unit(20, units = "points"),
 		legend.position = c(0.2, 0.2),
 		text = element_text(size = 30)
 	)
 ggsave(
 	filename = here("FIGURES", "pooled_compare_sex_4poster.png"),
 	# filename = here("FIGURES", "pooled_compare_sex_4poster.svg"),
-	height = 20, width = 25
+	height = 22, width = 25
 )
