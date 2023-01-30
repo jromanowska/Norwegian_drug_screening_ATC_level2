@@ -3,12 +3,11 @@ title: "Interactive results"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
-    vertical_layout: scroll
     theme: paper
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(include = FALSE,out.height=800, fig.height=30)
+knitr::opts_chunk$set(include = FALSE)
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -20,58 +19,91 @@ library(tidyr)
 library(hrbrthemes)
 library(ggalt)
 library(ggrepel)
-library(here)
 library(ggiraph)
 ```
 
 ```{r read_data}
-women_results <- read_csv(
-	here(
-		"DATA",
-		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_women.csv"
-		)
-	)
-men_results <- read_csv(
-	here(
-		"DATA",
-		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_men.csv"
-		)
-	)
+women.results <- read_csv("cur_results_women.csv")
+men.results <- read_csv("cur_results_men.csv")
 ```
+
+**RESULTS from Cox-regression analysis:**
+
+- exposure defined as min.2 prescriptions;
+- age as the time scale;
+- PD defined as 4 prescriptions of levodopa (+ reimbursement codes) **OR** mao-b inhibitors (N04BD);
+- adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate;
+- stratified by sex.
+
 
 Column {.tabset}
 -----------------------------------------------------------------------
 
-### RESULTS from Cox-regression analysis:
-
-- exposure defined as min.2 prescriptions;
-- age as the time scale;
-- PD defined as any of:
-    - min.4 prescriptions of levodopa (NO4BA) + any prescription with PD reimbursement code (ICD10 code G20 or ICPC code 16)
-    - min.4 prescriptions of mao-b inhibitors (N04BD);
-    
-- adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate (FDR);
-- stratified by sex.
-
-
 ### Sorted by ATC code
 
 ```{r sort_by_atc}
-cur_results <- bind_rows(
-	women_results %>%
+cur.results <- bind_rows(
+	women.results %>%
 		tibble::add_column(sex = "women"),
-	men_results %>%
+	men.results %>%
 		tibble::add_column(sex = "men")
 )
-unique_ATC_codes <- cur_results %>%
+unique_ATC_codes <- cur.results %>%
 	distinct(ATC_code) %>%
 	pull()
 ```
 
 
-```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE}
+```{r plot_plotly,eval=FALSE,include=FALSE,echo=FALSE,warning=FALSE,out.height=1200,fig.height=1200}
 # create two columns: one for selection, the other for plot
-shared.atc <- SharedData$new(cur_results)
+shared.women <- SharedData$new(cur.results)
+
+bscols(widths = c(3, NA, NA),
+	list(
+		filter_checkbox(id = "p-val_exclude", label = "(Unadjusted) P-value filtering",
+				sharedData = shared.atc, group = ~p.val.group, inline = TRUE),
+		filter_slider(id = "x_range", label = "HR filtering",
+				sharedData = shared.atc, column = ~HR, round = 1),
+		filter_checkbox(id = "atc_series", label = "ATC series filtering",
+				sharedData = shared.atc, group = ~group)
+	),
+	# plot for women
+	plot_ly(data = shared.atc %>%
+						filter(sex == "women"),
+					x = ~HR,
+					y = ~ATC_code,
+					text = ~hover.text,
+					error_x = list(
+					 		array = ~HR_u, arrayminus = ~HR_l,
+					 		color = ~as.factor(group), symmetric = FALSE),
+					height = 1200) %>%
+		add_markers(color = ~as.factor(group)) %>%
+		layout(xaxis = list(range = c(0,10),
+													mirror = "ticks"),
+					yaxis = list(title = list(text = "ATC code")),
+					title = "WOMEN"),
+	# plot for men
+	plot_ly(data = shared.atc %>%
+						filter(sex == "men"),
+					x = ~HR,
+					y = ~ATC_code,
+					text = ~hover.text,
+					error_x = list(
+					 		array = ~HR_u, arrayminus = ~HR_l,
+					 		color = ~as.factor(group), symmetric = FALSE),
+					height = 1200) %>%
+		add_markers(color = ~as.factor(group)) %>%
+		layout(xaxis = list(range = c(0,10),
+													mirror = "ticks"),
+						yaxis = list(title = list(text = "ATC code")),
+					title = "MEN")
+)
+
+```
+
+```{r plot_ggplotly, eval=TRUE, include=TRUE, echo=FALSE, warning=FALSE, out.height='100%'}
+# create two columns: one for selection, the other for plot
+shared.atc <- SharedData$new(cur.results)
  
 plot.sort.strata <- shared.atc %>%
 	ggplot(aes(HR, ATC_code, text = hover.text)) +
@@ -101,7 +133,7 @@ bscols(widths = c(3, NA),
 		filter_checkbox(id = "atc_series", label = "ATC series filtering",
 				sharedData = shared.atc, group = ~group)
 	),
-	ggplotly(plot.sort.strata, height = nrow(cur_results) * 10,
+	ggplotly(plot.sort.strata, height = nrow(cur.results) * 10,
 						tooltip = c("y", "text"))
 )
 
@@ -110,19 +142,19 @@ bscols(widths = c(3, NA),
 ### Sorted by HR value
 
 ```{r sort_by_pv}
-cur_results <- bind_rows(
-	women_results %>%
+cur.results <- bind_rows(
+	women.results %>%
 		tibble::add_column(sex = "women"),
-	men_results %>%
+	men.results %>%
 		tibble::add_column(sex = "men")
 )
 
 # if there are various ATC codes for women and men, I need to merge those
-hr_order_women <- cur_results %>%
+hr_order_women <- cur.results %>%
 		filter(sex == "women") %>%
 		distinct(ATC_code, HR) %>%
 		arrange(HR)
-hr_order_men <- cur_results %>%
+hr_order_men <- cur.results %>%
 		filter(sex == "men") %>%
 		distinct(ATC_code, HR) %>%
 		arrange(HR)
@@ -135,31 +167,31 @@ hr_order <- hr_order_women %>%
 	arrange(HR_women) %>%
 	pull(ATC_code)
 
-cur_results$ATC_code <- factor(
-	cur_results$ATC_code,
+cur.results$ATC_code <- factor(
+	cur.results$ATC_code,
 	levels = hr_order,
 	ordered = TRUE
 )
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
 ```
 
 ### Sorted by p-value
 
 ```{r sort_by_hr}
-cur_results <- bind_rows(
-	women_results %>%
+cur.results <- bind_rows(
+	women.results %>%
 		tibble::add_column(sex = "women"),
-	men_results %>%
+	men.results %>%
 		tibble::add_column(sex = "men")
 )
 # if there are various ATC codes for women and men, I need to merge those
-pv_order_women <- cur_results %>%
+pv_order_women <- cur.results %>%
 		filter(sex == "women") %>%
 		distinct(ATC_code, p.adj.FDR) %>%
 		arrange(p.adj.FDR)
-pv_order_men <- cur_results %>%
+pv_order_men <- cur.results %>%
 		filter(sex == "men") %>%
 		distinct(ATC_code, p.adj.FDR) %>%
 		arrange(p.adj.FDR)
@@ -172,24 +204,24 @@ pv_order <- pv_order_women %>%
 	arrange(p.adj.FDR_women) %>%
 	pull(ATC_code)
 
-cur_results$ATC_code <- factor(
-	cur_results$ATC_code,
+cur.results$ATC_code <- factor(
+	cur.results$ATC_code,
 	levels = pv_order,
 	ordered = TRUE
 )
 ```
 
-```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE}
+```{r plot_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
 ```
 
 ### Comparison between sexes
 
 ```{r compare_sex}
-cur_results <- women_results %>%
+cur.results <- women.results %>%
 	select(ATC_code, name, group, HR, HR_l, HR_u, p.adj.FDR, p.val.group,
 				 N.nonpd, N.pd, users.group, hover.text) %>%
 	full_join(
-		men_results %>%
+		men.results %>%
 			select(ATC_code, HR, HR_l, HR_u, p.adj.FDR, p.val.group,
 				 N.nonpd, N.pd, users.group, hover.text),
 		by = "ATC_code",
@@ -199,22 +231,22 @@ cur_results <- women_results %>%
 	mutate(HR_sex_diff = HR_women - HR_men) %>%
 	arrange(HR_sex_diff)
 
-order.diff <- cur_results %>%
+order.diff <- cur.results %>%
 	arrange(HR_sex_diff) %>%
 	pull(ATC_code)
-cur_results$ATC_code <- factor(
-	cur_results$ATC_code,
+cur.results$ATC_code <- factor(
+	cur.results$ATC_code,
 	levels = order.diff,
 	ordered = TRUE
 )
 ```
 
 
-```{r plot_diff_ggplotly,include=TRUE,echo=FALSE,warning=FALSE, out.width = 800, fig.width = 10}
+```{r plot_diff_ggplotly,include=TRUE,echo=FALSE,warning=FALSE,out.height='100%'}
 clrs <- list(men = "#bad744", women = "#5b8124")
 
 # create label on the top result
-label.df <- cur_results %>%
+label.df <- cur.results %>%
 	# filter(ATC_code == "G03")
 	arrange(desc(HR_sex_diff), desc(ATC_code)) %>%
 	slice(1)
@@ -230,7 +262,7 @@ label.df <- tibble(x = c(label.men.x, label.women.x),
 	 label = c("men", "women"))
 
 # create shading for those results that change the side of HR=1
-ymin <- cur_results %>%
+ymin <- cur.results %>%
 	arrange(HR_sex_diff, ATC_code) %>%
 	filter((HR_men > 1 & HR_women < 1) |
 				 	(HR_men < 1 & HR_women > 1)) %>%
@@ -239,7 +271,7 @@ ymin <- cur_results %>%
 ymax <- ymin + 0.5
 ymin <- ymin - 0.5
 
-y_shading_label <- cur_results %>%
+y_shading_label <- cur.results %>%
 	filter(ATC_code %in% c("B05", "B02")) %>%
 	pull(ATC_code) %>%
 	as.numeric() %>%
@@ -247,11 +279,11 @@ y_shading_label <- cur_results %>%
 
 # range of the X axis
 range.x <- range(
-	range(cur_results$HR_women, na.rm = TRUE),
-	range(cur_results$HR_men, na.rm = TRUE)
+	range(cur.results$HR_women, na.rm = TRUE),
+	range(cur.results$HR_men, na.rm = TRUE)
 )
 
-plot_sex_diff <- ggplot(cur_results,
+plot_sex_diff <- ggplot(cur.results,
 		aes(y = ATC_code, x = HR_women, xend = HR_men)) +
 	geom_segment(aes(x = 0, xend = HR_women, y = ATC_code, yend = ATC_code),
 		linetype = 3) +
@@ -276,7 +308,7 @@ plot_sex_diff <- ggplot(cur_results,
 		color = clrs$women
 	) +
 	geom_point_interactive(
-	 	aes(y = ATC_code, x = HR_men, tooltip = hover.text_men),
+		aes(y = ATC_code, x = HR_men, tooltip = hover.text_men),
 	# geom_point(
 	# 	aes(y = ATC_code, x = HR_men, text = hover.text_men),
 		size = 4,
@@ -305,7 +337,7 @@ plot_sex_diff <- ggplot(cur_results,
 		breaks = c(0.3, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.8, 2.2, 2.6, 3)
 	) +
 	coord_cartesian(
-		ylim = c(-0.5, max(as.numeric(cur_results$ATC_code)) + 0.5),
+		ylim = c(-0.5, max(as.numeric(cur.results$ATC_code)) + 0.5),
 		xlim = c(0.25, range.x[2])
 		) +
   theme_ipsum(grid = "X", axis_title_face = "bold", axis_text_size = 9.5) +
@@ -315,16 +347,14 @@ plot_sex_diff <- ggplot(cur_results,
 # plot interactive
 # ggplotly(
 # 	plot_sex_diff,
-# 	height = nrow(cur_results) * 10,
+# 	height = nrow(cur.results) * 10,
 # 	tooltip = c("y", "text")
 # )
-girafe(
+ggiraph::girafe(
 	ggobj = plot_sex_diff,
 	width_svg = 10,
 	height_svg = 12,
-	pointsize = 10,
-	setdims = TRUE,
-	width = 10
+	pointsize = 10
 )
 
 ```
@@ -333,12 +363,12 @@ girafe(
 ### Table view
 
 
-```{r table,include=TRUE,echo=FALSE}
+```{r table,include=TRUE,echo=FALSE,out.height=1200, fig.height=100}
 DT::datatable(
 	bind_rows(
-	women_results %>%
+	women.results %>%
 		tibble::add_column(sex = "women"),
-	men_results %>%
+	men.results %>%
 		tibble::add_column(sex = "men")
 	) %>%
 		select(ATC_code, name, HR, HR_l, HR_u, pvals, p.adj.FDR, sex, N.nonpd, N.pd) %>%
@@ -347,8 +377,8 @@ DT::datatable(
 	class = "compact",
 	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
 							 "p-value (FDR-adj.)", "sex", "# users without PD", "# users with PD"),
-	# fillContainer = TRUE,
-	height = '600px',
+	fillContainer = TRUE,
+	height = 2000,
 	width = '80%',
 	rownames = FALSE,
 	extensions = c('FixedHeader', 'Buttons'),
@@ -357,8 +387,7 @@ DT::datatable(
 		fixedHeader = TRUE,
 		lengthMenu = c(50, 100, 200, 500, -1),
 		dom = 'Bfrtip',
-		buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-		max.height = '600px'
+		buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
 	)
 )
 ```

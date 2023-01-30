@@ -24,17 +24,11 @@ all_users_per_atc <- list(
 		filter(sex == 1) %>%
 		select(-sex)
 )
-all_users_per_atc$all <- full_join(
-		all_users_per_atc$women,
-		all_users_per_atc$men,
-		by = c("park_yn", "ATC_code")
-	) %>%
-	mutate(
-		n_users.x = ifelse(is.na(n_users.x), yes = 0, no = n_users.x),
-		n_users.y = ifelse(is.na(n_users.y), yes = 0, no = n_users.y)
-	) %>%
-	mutate(n_users = n_users.x + n_users.y) %>%
-	select(park_yn, ATC_code, n_users)
+all_users_per_atc$all <- read_delim(
+	delim = "\t",
+	file.path(dir_in, "DATA",
+						"n_users_per_ATC_code2_no_sex.txt")
+)
 
 # read also the ATC codes with their names
 all_ATC_codes <- read_delim(
@@ -103,7 +97,7 @@ readr::write_csv(
 	all_results$women,
 	"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_women.csv")
 readr::write_csv(
-	all_results$women,
+	all_results$men,
 	"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_men.csv")
 readr::write_csv(
 	all_results$all,

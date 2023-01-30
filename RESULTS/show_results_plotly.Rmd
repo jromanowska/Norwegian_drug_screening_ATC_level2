@@ -1,5 +1,5 @@
 ---
-title: "Interactive results - Cox-regression analysis"
+title: "Interactive results"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -10,8 +10,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	include = FALSE,
-	fig.height = 15#,
-	# out.height = '100%'
+	fig.height = 100,
+	out.height = 1200
 )
 library(readr)
 library(dplyr)
@@ -21,28 +21,22 @@ library(crosstalk)
 library(flexdashboard)
 library(purrr)
 library(tidyr)
-library(here)
 ```
 
 ```{r read_data}
-all.results <- read_csv(
-	here(
-		"DATA",
-		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_all.csv"
-		)
-	)
+all.results <- read_csv("cur_results_all.csv")
 ```
 
-Column {.tabset}
------------------------------------------------------------------------
-
-### Information
+**RESULTS from Cox-regression analysis:**
 
 - exposure defined as min.2 prescriptions;
 - age as the time scale;
 - PD defined as 4 prescriptions of levodopa (+ reimbursement codes) **OR** mao-b inhibitors (N04BD);
 - adjusted p-values calculated with the Benjamini & Yakutieli method to control for false discovery rate.
 
+
+Column {.tabset}
+-----------------------------------------------------------------------
 
 ### Sorted by ATC code
 
@@ -121,8 +115,8 @@ DT::datatable(
 	colnames = c("ATC code", "drug name", "hazard ratio (HR)", "95% CI", "p-value",
 							 "p-value (FDR-adj.)", "# users without PD", "# users with PD"),
 	fillContainer = TRUE,
-	# height = '100%',
-	# width = '80%',
+	height = 2000,
+	width = '80%',
 	rownames = FALSE,
 	extensions = c('FixedHeader', 'Buttons'),
 	options = list(
