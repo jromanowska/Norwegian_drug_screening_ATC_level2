@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2022-11-17
+# DATE MODIFIED: 2023-02-08
 
 # SETUP --------------
 library(tidyverse)
@@ -101,9 +101,7 @@ prcnt_signif_incr <- signif_per_group_all %>%
 		inherit.aes = FALSE
 	) +
 	scale_fill_manual(
-		values = c("grey70", "grey30"),
-		name = "significant?",
-		labels = c("no", "yes")
+		values = c("grey70", "grey30")
 	) +
 	coord_flip() +
 	geom_text(
@@ -124,7 +122,7 @@ prcnt_signif_incr <- signif_per_group_all %>%
 		axis.title.x = element_blank(),
 		axis.text.y = element_blank(),
 		panel.spacing.x = unit(0, units = "cm"),
-		legend.position = c(0.8, 0.95),
+		legend.position = "none",
 		plot.title = element_text(hjust = 0.3)
 	)
 
@@ -134,7 +132,9 @@ prcnt_signif_decr <- signif_per_group_all %>%
 	ggplot(aes(x = group, y = -prcnt, fill = signif)) +
 	geom_col() +
 	scale_fill_manual(
-		values = c("grey70", "grey30")
+		values = c("grey70", "grey30"),
+		name = "significant?",
+		labels = c("no", "yes")
 	) +
 	coord_flip() +
 	geom_text(
@@ -155,7 +155,7 @@ prcnt_signif_decr <- signif_per_group_all %>%
 		axis.title.x = element_blank(),
 		axis.text.y = element_blank(),
 		panel.spacing.x = unit(0, units = "cm"),
-		legend.position = "none",
+		legend.position = c(0.1, 0.95),
 		plot.margin = unit(c(5.5, 0, 5.5, 5.5), units = "points"),
 		plot.title = element_text(hjust = 0.7)
 	)
