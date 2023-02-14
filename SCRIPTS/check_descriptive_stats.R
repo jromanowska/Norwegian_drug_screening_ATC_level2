@@ -1,7 +1,7 @@
 # DESCRIPTION: check some descriptive stats of the sample
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-10-05
-# DATE MODIFIED: 2022-10-06
+# DATE MODIFIED: 2023-02-07
 
 # SETUP ----
 library(tidyverse)
@@ -36,21 +36,21 @@ data_atc2level[,.N, by = park_yn]
 
 # extract the necessary info
 data_atc2level_personal <- data_atc2level[
-	, .(PasientLopeNr, park_yn, PasientFodtAr, PasientDodsDato, first_N04_date,
-			time_to_onset, foedselsaar, doeds_aar, sex, age, edu_level,
-			censor_event, cens_date, time_risk)
+	, .(indiv_ID, park_yn, first_N04_date,
+			time_to_onset, foedselsaar, sex, age, edu_level,
+			censor_event, cens_date, status_date, time_risk)
 ]
 
 age_at_diagn <- as_tibble(data_atc2level_personal[
 	park_yn == TRUE,
 ])
 age_at_diagn %>%
-	select(PasientLopeNr, park_yn, first_N04_date, age)
+	select(indiv_ID, park_yn, first_N04_date, age)
 
 age_at_diagn <- age_at_diagn %>%
 	mutate(age_at_onset = age + (year(first_N04_date) - 2005))
 age_at_diagn %>%
-	select(PasientLopeNr, park_yn, first_N04_date, age, age_at_onset)
+	select(indiv_ID, park_yn, first_N04_date, age, age_at_onset)
 
 # mean age:
 age_at_diagn %>%
@@ -111,7 +111,7 @@ descr_table %>%
 	gt::gtsave(filename = here("RESULTS", "descriptive_table.tex"))
 
 ## how many had received levodopa, how many MAO-B? ----
-# I will fetch this info from the DB, based on the PasientLopeNr from age_at_diagn
+# I will fetch this info from the DB, based on the indiv_ID from age_at_diagn
 db_con <- dbConnect(RSQLite::SQLite(), "../../DrugScreeningDB.sqlite")
 # Get all prescriptions for the patients
 
@@ -155,14 +155,14 @@ count_prescr_patients <- age_at_diagn %>%
 		# 	filter(ATC_code %like% "^NO4BD" | ATC_code %like% "^N04BA"),
 		## ---
 		all_prescr_mao_b_levo,
-		by = c("PasientLopeNr" = "indiv_ID")
+		by = c("indiv_ID" = "indiv_ID")
 	) %>%
 	mutate(levo_or_mao_b = case_when(
 		ATC_code %like% "^N04BD" ~ "mao_b",
 		ATC_code %like% "^N04BA" ~ "levo",
 		TRUE ~"other"
 	)) %>%
-	count(PasientLopeNr, levo_or_mao_b)
+	count(indiv_ID, levo_or_mao_b)
 
 count_prescr_patients %>%
 	select(-n) %>%
