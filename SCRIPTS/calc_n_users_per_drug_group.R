@@ -1,7 +1,7 @@
 # DESCRIPTION: Calculate the number of users per drug group
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-01-30
-# DATE MODIFIED: 2023-02-07
+# DATE MODIFIED: 2023-05-11
 
 # SETUP ----
 library(tidyverse)
@@ -9,9 +9,19 @@ library(here)
 library(data.table)
 library(survival)
 
-dataset_atc2level_file <- "dataset_ready_for_analysis.rds"
-users_per_drug_file <- "n_users_per_ATC_code2.txt"
-users_per_drug_no_strata_file <- "n_users_per_ATC_code2_no_sex.txt"
+time_lag <- 10
+prescriptions_exposure <- 2
+
+dataset_atc2level_file <- paste0("dataset_ready_for_analysis_exposure",
+																 prescriptions_exposure,".rds")
+users_per_drug_file <- paste0(
+	"n_users_per_ATC_code2_exposure", prescriptions_exposure,
+	"_time-lag", time_lag, "yrs.txt"
+)
+users_per_drug_no_strata_file <- paste0(
+	"n_users_per_ATC_code2_no_sex_exposure", prescriptions_exposure,
+	"_time-lag", time_lag, "yrs.txt"
+)
 
 # READ DATA ----
 data_atc2level <- readRDS(
@@ -24,6 +34,13 @@ names(data_atc2level)
 
 ## how many cases, how many controls?
 data_atc2level[,.N, by = park_yn]
+
+## PREPARE FOR TIME LAG ----
+if(time_lag > 0){
+	data_atc2level[
+		, time_risk := time_risk - time_lag*365.25
+	]
+}
 
 # CHECK USAGE ----
 all_atc_codes <- names(data_atc2level)[4:85]

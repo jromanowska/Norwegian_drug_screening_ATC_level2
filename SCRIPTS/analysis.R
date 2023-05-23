@@ -1,60 +1,16 @@
-# DESCRIPTION: Cox regression on per ATC-group data
-#    S:/Project/DRONE/Magne/test4/alder_kvinner.R
+# DESCRIPTION: This is a sub-script to run the main part of analyses:
+#    Cox regression for the entire population and sex-stratified.
+#    To run this script successfully, you need to read the dataset 
+#    ("data_atc2level") and set the following variables:
+#      dirty_res_file - name of the file holding all the results;
+#      tidy_res_file - base for the name of the file holding the cleaned
+#                      results (it will be suffixed with 'all', 'women', and 'men')
+#      n_parallel_processes - number of parallel processes to start
 #
 # AUTHOR: Julia Romanowska
-# DATE CREATED: 2021-11-16
-# DATE MODIFIED: 2021-11-19
+# DATE CREATED: 2023-05-08
+# DATE MODIFIED: 
 
-
-
-# SETUP ----------------------
-
-library(data.table)
-library(stringr)
-library(dplyr)
-library(tidyr)
-library(lubridate)
-library(ggplot2)
-library(here)
-library(purrr)
-library(future)
-library(future.apply)
-library(broom)
-library(survival)
-
-dataset_atc2level_file <- "dataset_ready_for_analysis.rds"
-dirty_res_file <- here("RESULTS", "dirty_results_atc_group2.rds")
-tidy_res_file <- here("RESULTS", "nice_results_atc_group2")
-
-## READ DATA -----------------
-data_atc2level <- readRDS(
-	here("DATA", dataset_atc2level_file)
-)
-data_atc2level
-
-dim(data_atc2level)
-data_atc2level[,.N, by = park_yn]
-
-## FILTER -----------
-# remove all persons who were 23 or younger in 2004
-data_atc2level <- data_atc2level[age >= 24]
-dim(data_atc2level)
-data_atc2level[,.N, by = park_yn]
-
-# remove all that got at least one prescription of N04 in 2004
-#   THIS WAS DONE IN PREPARATION!
-
-# categorise age into 5-year intervals
-data_atc2level[,
-	age_group := cut(age, breaks = c(seq(25, 85, by = 5), 115), 
-									 right = FALSE)
-]
-data_atc2level
-
-# calculate age (in days!) at the time of start of follow up
-data_atc2level[,
-	age0 := (age * 365.25) + 365.25/2
-]
 
 ## RUN ANALYSIS -------------
 # get all the names of drug groups
@@ -69,8 +25,8 @@ other_colnames
 
 if(!file.exists(dirty_res_file)){
 	# prepare for parallelization
-	options(future.globals.maxSize = 2 *10^9 * 1024^2)
-	plan(multiprocess, workers = 6)
+	options(future.globals.maxSize = 3 *10^9 * 1024^2)
+	plan(multisession, workers = n_parallel_processes)
 	
 	start.time <- Sys.time()
 	start.time
