@@ -3,7 +3,7 @@
 #
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-05
-# DATE MODIFIED: 2023-05-09
+# DATE MODIFIED: 2023-05-16
 
 # SETUP ----
 library(data.table)
@@ -19,9 +19,9 @@ library(future.apply)
 library(broom)
 library(survival)
 
-# check for time lags of 5, 8, and 10
-time_lag <- 10
-n_parallel_processes <- 3
+# check for time lags of 5, 8, and 10?
+time_lag <- 8
+n_parallel_processes <- 10
 prescriptions_exposure <- 2
 
 dataset_atc2level_file <- paste0("dataset_ready_for_analysis_exposure",
@@ -64,13 +64,5 @@ data_atc2level[,
 							 age0 := (age * 365.25) + 365.25/2
 ]
 
-### PREPARE FOR TIME LAG ----
-data_atc2level[
-	, time_risk := time_risk - time_lag*365.25
-]
-# for persons that got their first N04 prescription or died in 2004,
-# we need to set the time as 0.5, otherwise tmerge function would complain
-data_atc2level <- data_atc2level[time_risk <= 0, time_risk := 0.5 ]
-
 ## RUN ANALYSIS -------------
-source("analysis.R")
+source("analysis.R", echo = TRUE)

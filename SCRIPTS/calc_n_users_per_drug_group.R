@@ -1,7 +1,7 @@
 # DESCRIPTION: Calculate the number of users per drug group
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-01-30
-# DATE MODIFIED: 2023-05-11
+# DATE MODIFIED: 2023-05-22
 
 # SETUP ----
 library(tidyverse)
@@ -9,8 +9,8 @@ library(here)
 library(data.table)
 library(survival)
 
-time_lag <- 10
-prescriptions_exposure <- 2
+time_lag <- 0
+prescriptions_exposure <- 8
 
 dataset_atc2level_file <- paste0("dataset_ready_for_analysis_exposure",
 																 prescriptions_exposure,".rds")
@@ -43,7 +43,11 @@ if(time_lag > 0){
 }
 
 # CHECK USAGE ----
-all_atc_codes <- names(data_atc2level)[4:85]
+all_atc_codes <- str_subset(
+	string = colnames(data_atc2level),
+	pattern = "^[[:upper:][:digit:][:digit:]]"
+)
+all_atc_codes
 
 other_colnames <- setdiff(
 	colnames(data_atc2level),

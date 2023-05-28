@@ -9,12 +9,15 @@
 #
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-08
-# DATE MODIFIED: 
+# DATE MODIFIED: 2023-05-22
 
 
 ## RUN ANALYSIS -------------
 # get all the names of drug groups
-atc2names <- colnames(data_atc2level[1:2, A01:V08])
+atc2names <- str_subset(
+	string = colnames(data_atc2level),
+	pattern = "^[[:upper:][:digit:][:digit:]]"
+)
 atc2names
 
 other_colnames <- setdiff(
@@ -49,6 +52,10 @@ if(!file.exists(dirty_res_file)){
 				# age at PD onset or censoring event
 				mutate(time_risk = time_risk + age0)
 			
+			if(time_lag != 0){
+				cur_data <- cur_data %>%
+					mutate(time_risk = time_risk - time_lag*365.25)
+			}
 			cur_data <- tmerge(
 				data1 = cur_data,
 				data2 = cur_data,
@@ -56,12 +63,10 @@ if(!file.exists(dirty_res_file)){
 				park = event(time_risk, park_yn),
 				trt = tdc(mtid)
 			)
-			
+
 			cur_data <- cur_data %>% 
 				mutate(tstart = if_else(is.na(mtid), 
-																tstart + age0, tstart))
-			
-			cur_data <- cur_data %>% 
+																tstart + age0, tstart)) %>% 
 				mutate(tstart = if_else(tstart == 0, 
 																tstart + age0, tstart))
 			
@@ -112,8 +117,7 @@ if(!file.exists(dirty_res_file)){
 
 tidy_cox_res_atc2_all <- map(
 	cox_res_atc2,
-	~ broom::tidy(.x$all, conf.int = TRUE),
-	conf.int = TRUE
+	~ broom::tidy(.x$all, conf.int = TRUE)
 )
 names(tidy_cox_res_atc2_all) <- names(cox_res_atc2)
 
@@ -142,8 +146,7 @@ saveRDS(
 # now for women
 tidy_cox_res_atc2_women <- map(
 	cox_res_atc2,
-	~ broom::tidy(.x$women, conf.int = TRUE),
-	conf.int = TRUE
+	~ broom::tidy(.x$women, conf.int = TRUE)
 )
 names(tidy_cox_res_atc2_women) <- names(cox_res_atc2)
 
@@ -172,8 +175,7 @@ saveRDS(
 # then for men
 tidy_cox_res_atc2_men <- map(
 	cox_res_atc2,
-	~ broom::tidy(.x$men, conf.int = TRUE),
-	conf.int = TRUE
+	~ broom::tidy(.x$men, conf.int = TRUE)
 )
 names(tidy_cox_res_atc2_men) <- names(cox_res_atc2)
 

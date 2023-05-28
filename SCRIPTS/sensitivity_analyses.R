@@ -2,7 +2,7 @@
 #
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-08
-# DATE MODIFIED: 
+# DATE MODIFIED: 2023-05-16
 
 # SETUP ----------------------
 
@@ -19,8 +19,9 @@ library(future.apply)
 library(broom)
 library(survival)
 
-prescriptions_exposure <- 4
-n_parallel_processes <- 3
+prescriptions_exposure <- 8
+n_parallel_processes <- 10
+time_lag <- 0
 
 dataset_atc2level_file <- paste0("dataset_ready_for_analysis_exposure", prescriptions_exposure,".rds")
 

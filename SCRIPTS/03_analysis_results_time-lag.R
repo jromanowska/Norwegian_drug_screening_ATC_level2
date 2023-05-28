@@ -1,7 +1,7 @@
 # DESCRIPTION: Analysis of the results: time-lagged, ATC level 2, not stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-08
-# DATE MODIFIED: 2023-05-12
+# DATE MODIFIED: 2023-05-23
 
 # SETUP --------------
 library(tidyverse)
@@ -30,7 +30,6 @@ atc_descr <- read_csv(
 	)
 	) %>%
 	mutate(ATC_level_name = stringr::str_to_sentence(ATC_level_name))
-atc_descr
 
 # all the results
 atc2level_all_time_lags <- map(
@@ -75,7 +74,7 @@ atc2level_all_time_lags_compact_orig_signif %>%
 	count(stratum)
 
 # PLOT ----
-clrs <- c("#585CFA", "#4E77DE", "#63B3F5", "#4EC3DE", "#58FAED")
+clrs <- c("#585CFA", "#63B3F5", "#4EC3DE", "#58FAED")
 names(clrs) <- names_all_lag_results
 
 ## PLOT ONLY SIGNIFICANT IN ORIGINAL RESULTS ----
@@ -84,14 +83,16 @@ ATC_codes_increase <- atc2level_all_time_lags$orig %>%
 	filter(p.adj.FDR < 0.05 & HR >= 1) %>%
 	pull(ATC_code)
 results_4plot_increase <- atc2level_all_time_lags_compact %>%
-	filter(ATC_code %in% ATC_codes_increase)
+	filter(ATC_code %in% ATC_codes_increase) %>%
+	mutate(ATC_code = paste0(ATC_code, " (", tolower(name), ")"))
 
 ## decrease risk
 ATC_codes_decrease <- atc2level_all_time_lags$orig %>%
 	filter(p.adj.FDR < 0.05 & HR < 1) %>%
 	pull(ATC_code)
 results_4plot_decrease <- atc2level_all_time_lags_compact %>%
-	filter(ATC_code %in% ATC_codes_decrease)
+	filter(ATC_code %in% ATC_codes_decrease) %>%
+	mutate(ATC_code = paste0(ATC_code, " (", tolower(name), ")"))
 
 plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 	ggplot(cur_data, aes(stratum, HR)) +
@@ -112,14 +113,64 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 			facets = ~ ATC_code,
 			ncol = ncolumns,
 			scales = "free_y"
+		) +
+		theme_light() +
+		theme(
+			axis.title.x = element_blank(),
+			axis.text.x = element_blank(),
+			strip.text = element_text(hjust = 0)
 		)
 }
 
 plot_time_lag_compare(cur_data = results_4plot_increase) +
-	theme_light()
+	labs(title = "Drugs originally significantly associated with increased PD risk")
+ggsave(
+	here("FIGURES", "comparison_time-lag_signif_only_increase_risk.png")
+)
 
 plot_time_lag_compare(cur_data = results_4plot_decrease) +
-	theme_light()
+	labs(title = "Drugs originally significantly associated with decreased PD risk")
+ggsave(
+	here("FIGURES", "comparison_time-lag_signif_only_decrease_risk.png")
+)
+
+### check which are significant when ----
+plot_all_signif <- function(cur_data){
+	cur_data <- cur_data %>%
+		mutate(label = paste0(ATC_code, " (", name, ")"))
+	order_by_HR <- cur_data %>%
+		arrange(HR) %>%
+		pull(label)
+	cur_data <- cur_data %>%
+		mutate(label = factor(label, levels = order_by_HR, ordered = TRUE))
+		
+	ggplot(cur_data, aes(HR, label)) +
+		geom_vline(xintercept = 1, color = "grey30") +
+		geom_pointrange(
+			aes(
+				xmin = HR_l,
+				xmax = HR_u,
+				color = group
+			)
+		) +
+		scale_x_continuous(trans = "log") +
+		theme_minimal() +
+		theme(
+			axis.title.y = element_blank()
+		)
+}
+
+plot_all_signif(atc2level_all_time_lags$orig %>% filter(p.adj.FDR < 0.05)) +
+	labs(title = "Time-lag: 0 years")
+
+plot_all_signif(atc2level_all_time_lags$lag5yrs %>% filter(p.adj.FDR < 0.05)) +
+	labs(title = "Time-lag: 5 years")
+
+plot_all_signif(atc2level_all_time_lags$lag8yrs %>% filter(p.adj.FDR < 0.05)) +
+	labs(title = "Time-lag: 8 years")
+
+plot_all_signif(atc2level_all_time_lags$lag10yrs %>% filter(p.adj.FDR < 0.05)) +
+	labs(title = "Time-lag: 10 years")
 
 ## PLOT ALL ----
 ## increase risk
@@ -127,17 +178,23 @@ ATC_codes_all_increase <- atc2level_all_time_lags$orig %>%
 	filter(HR >= 1) %>%
 	pull(ATC_code)
 results_all_4plot_increase <- atc2level_all_time_lags_compact %>%
-	filter(ATC_code %in% ATC_codes_all_increase)
+	filter(ATC_code %in% ATC_codes_all_increase) %>%
+	mutate(ATC_code = paste0(ATC_code, " (", tolower(name), ")"))
 
 ## decrease risk
 ATC_codes_all_decrease <- atc2level_all_time_lags$orig %>%
 	filter(HR < 1) %>%
 	pull(ATC_code)
 results_all_4plot_decrease <- atc2level_all_time_lags_compact %>%
-	filter(ATC_code %in% ATC_codes_all_decrease)
+	filter(ATC_code %in% ATC_codes_all_decrease) %>%
+	mutate(ATC_code = paste0(ATC_code, " (", tolower(name), ")"))
 
 plot_time_lag_compare(cur_data = results_all_4plot_increase) +
-	theme_light()
+	labs(
+		title = "Drugs originally associated with increased PD risk"
+	)
 
 plot_time_lag_compare(cur_data = results_all_4plot_decrease) +
-	theme_light()
+	labs(
+		title = "Drugs originally associated with decreased PD risk"
+	)
