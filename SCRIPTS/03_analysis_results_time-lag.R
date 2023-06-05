@@ -1,7 +1,7 @@
 # DESCRIPTION: Analysis of the results: time-lagged, ATC level 2, not stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-08
-# DATE MODIFIED: 2023-05-23
+# DATE MODIFIED: 2023-05-28
 
 # SETUP --------------
 library(tidyverse)
@@ -125,13 +125,17 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 plot_time_lag_compare(cur_data = results_4plot_increase) +
 	labs(title = "Drugs originally significantly associated with increased PD risk")
 ggsave(
-	here("FIGURES", "comparison_time-lag_signif_only_increase_risk.png")
+	here("FIGURES", "comparison_time-lag_signif_only_increase_risk.png"),
+	width = 12,
+	height = 10
 )
 
 plot_time_lag_compare(cur_data = results_4plot_decrease) +
 	labs(title = "Drugs originally significantly associated with decreased PD risk")
 ggsave(
-	here("FIGURES", "comparison_time-lag_signif_only_decrease_risk.png")
+	here("FIGURES", "comparison_time-lag_signif_only_decrease_risk.png"),
+	width = 12,
+	height = 10
 )
 
 ### check which are significant when ----
