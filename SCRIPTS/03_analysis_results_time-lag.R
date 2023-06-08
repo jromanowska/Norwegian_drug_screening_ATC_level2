@@ -1,7 +1,7 @@
 # DESCRIPTION: Analysis of the results: time-lagged, ATC level 2, not stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-08
-# DATE MODIFIED: 2023-05-28
+# DATE MODIFIED: 2023-06-08
 
 # SETUP --------------
 library(tidyverse)
@@ -106,36 +106,49 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 			size = 3
 		) +
 		scale_color_manual(
-			values = colors
+			values = colors,
+			name = "analysis:"
 		) +
-		scale_y_continuous(trans = "log") +
+		scale_y_continuous(
+			trans = "log",
+			labels = function(x){round(x, 2)}
+		) +
 		facet_wrap(
 			facets = ~ ATC_code,
 			ncol = ncolumns,
-			scales = "free_y"
+			#scales = "free_y",
+			labeller = label_wrap_gen(40)
 		) +
 		theme_light() +
 		theme(
 			axis.title.x = element_blank(),
 			axis.text.x = element_blank(),
-			strip.text = element_text(hjust = 0)
+			strip.text = element_text(hjust = 0, face = "bold")
 		)
 }
 
 plot_time_lag_compare(cur_data = results_4plot_increase) +
-	labs(title = "Drugs originally significantly associated with increased PD risk")
+	labs(title = "Drugs originally significantly associated with increased PD risk") +
+	theme(
+		legend.position = c(0.5, 0.1),
+		legend.direction = "horizontal"
+	)
 ggsave(
 	here("FIGURES", "comparison_time-lag_signif_only_increase_risk.png"),
-	width = 12,
+	width = 16,
 	height = 10
 )
 
 plot_time_lag_compare(cur_data = results_4plot_decrease) +
-	labs(title = "Drugs originally significantly associated with decreased PD risk")
+	labs(title = "Drugs originally significantly associated with decreased PD risk") +
+	theme(
+		legend.position = "bottom",
+		legend.direction = "horizontal"
+	)
 ggsave(
 	here("FIGURES", "comparison_time-lag_signif_only_decrease_risk.png"),
-	width = 12,
-	height = 10
+	width = 16,
+	height = 5
 )
 
 ### check which are significant when ----

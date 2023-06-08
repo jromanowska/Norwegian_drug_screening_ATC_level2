@@ -2,7 +2,7 @@
 #   required to be cosidered as exposed to a drug
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-22
-# DATE MODIFIED: 
+# DATE MODIFIED: 2023-06-05
 
 # SETUP --------------
 library(tidyverse)
@@ -156,7 +156,8 @@ plot_prescr_exposure_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 		facet_grid(
 			rows =  vars(ATC_code),
 			scales = "free_y",
-			switch = "y"
+			switch = "y",
+			labeller = label_wrap_gen(50)
 		) +
 		theme_light() +
 		theme(
@@ -169,29 +170,31 @@ plot_prescr_exposure_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 				angle = 0,
 				hjust = 0,
 				face = "bold",
-				size = 12
+				size = 9
 			),
 			strip.placement = "outside",
-			panel.spacing.y = unit(5, units = "points"),
-			legend.position = "right"
+			panel.spacing.y = unit(5, units = "points")#,
+			#legend.position = "right"
 		)
 }
 
 plot_signif_incr_risk <- plot_prescr_exposure_compare(cur_data = results_4plot_increase) +
-	labs(title = "Drugs originally significantly associated with increased PD risk")
+	labs(title = "Drugs originally significantly associated with increased PD risk") +
+	theme(legend.position = "bottom")
 
 plot_signif_decr_risk <- plot_prescr_exposure_compare(cur_data = results_4plot_decrease) +
-	labs(title = "Drugs originally significantly associated with decreased PD risk")
+	labs(title = "Drugs originally significantly associated with decreased PD risk") +
+	theme(legend.position = "none")
 
 plot_signif_incr_risk / plot_signif_decr_risk +
 	plot_layout(
-		guides = "collect",
+#		guides = "collect",
 		heights = c(1, 10/21)
 	)
 ggsave(
 	here("FIGURES", "comparison_sensitivity_results_signif_only.png"),
 	height = 12,
-	width = 14
+	width = 12
 )
 
 # ## PLOT ALL ----
