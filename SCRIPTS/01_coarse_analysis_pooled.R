@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2023-02-08
+# DATE MODIFIED: 2023-06-09
 
 # SETUP --------------
 library(tidyverse)
@@ -28,7 +28,7 @@ atc_descr
 atc2level_all <- read_csv(
 	here(
 		"DATA",
-		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_all.csv"
+		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_time-lag0yrs_all.csv"
 	)
 )
 atc2level_all

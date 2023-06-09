@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results; sex-stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-14
-# DATE MODIFIED: 2022-10-07
+# DATE MODIFIED: 2023-06-09
 
 # SETUP --------------
 library(tidyverse)
@@ -33,14 +33,14 @@ atc2level_signif_pooled
 atc2level_men <- read_csv(
 	here(
 		"DATA",
-		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_men.csv"
+		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_time-lag0yrs_men.csv"
 	)
 )
 atc2level_men
 atc2level_women <- read_csv(
 	here(
 		"DATA",
-		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_women.csv"
+		"expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_time-lag0yrs_women.csv"
 	)
 )
 atc2level_women
