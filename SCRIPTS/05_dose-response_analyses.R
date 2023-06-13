@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-06-07
-# DATE MODIFIED: 2023-06-08
+# DATE MODIFIED: 2023-06-13
 
 # SETUP --------------
 library(tidyverse)
@@ -9,6 +9,10 @@ library(here)
 library(gt)
 library(flextable)
 library(data.table)
+library(patchwork)
+
+dose_levels <- c("no use", ">2 prescr.", "25th percentile", "50th percentile",
+								 "75th percentile", "90th percentile")
 
 # READ DATA --------------
 dose_response_file <- "expose_2_prescr_PD-4prescr-levo-mao-b_age-time-scale_results_atc2level_time-lag0yrs_dose-response_all.csv"
@@ -25,7 +29,7 @@ signif_results_atc <- atc2level_signif_compact$ATC_code
 # CREATE NICE TABLES ----
 ## SIGNIFICANT RESULTS ONLY ----
 (
-	dose_response_signif_only <- dose_response %>%
+	dose_response_signif_only_for_gt <- dose_response %>%
 	filter(atc_group %in% signif_results_atc) %>%
 	mutate(
 		atc_group = paste0(
@@ -44,7 +48,9 @@ signif_results_atc <- atc2level_signif_compact$ATC_code
 )
 
 gt(
-	dose_response_signif_only, groupname_col = "atc_group", rowname_col = "term"
+	dose_response_signif_only_for_gt,
+	groupname_col = "atc_group",
+	rowname_col = "term"
 )
 
 # FOREST PLOT ----
@@ -96,7 +102,7 @@ idx_add_plot <- map(
 
 (
 	dose_resp_table_with_plots <- as_grouped_data(
-  dose_response_signif_only %>%
+  dose_response_signif_only_for_gt %>%
   	mutate(
   		p.value = if_else(
   			is.na(p.value),
@@ -104,12 +110,12 @@ idx_add_plot <- map(
   			sprintf("%.2e", p.value)
   		),
   		term = case_when(
-  			term == "trt_q1" ~ "no use",
-  			term == "trt_q2" ~ ">2 prescr.",
-  			term == "trt_q3" ~ "25th percentile",
-  			term == "trt_q4" ~ "50th percentile",
-  			term == "trt_q5" ~ "75th percentile",
-  			term == "trt_q6" ~ "90th percentile",
+  			term == "trt_q1" ~ dose_levels[1],
+  			term == "trt_q2" ~ dose_levels[2],
+  			term == "trt_q3" ~ dose_levels[3],
+  			term == "trt_q4" ~ dose_levels[4],
+  			term == "trt_q5" ~ dose_levels[5],
+  			term == "trt_q6" ~ dose_levels[6]
   		)
   	),
   groups = "atc_group"
@@ -164,3 +170,111 @@ save_as_html(
 	dose_resp_table_with_plots,
 	path = here("RESULTS", "dose_response_table_with_plots.html")
 )
+
+# ONLY PLOT OF CHOSEN RESULTS ----
+dose_response_signif_only <- dose_response %>%
+	filter(!is.na(HR_l)) %>%
+	mutate(
+		term = case_when(
+  			term == "trt_q1" ~ dose_levels[1],
+  			term == "trt_q2" ~ dose_levels[2],
+  			term == "trt_q3" ~ dose_levels[3],
+  			term == "trt_q4" ~ dose_levels[4],
+  			term == "trt_q5" ~ dose_levels[5],
+  			term == "trt_q6" ~ dose_levels[6]
+  		),
+		ATC_code = atc_group,
+		atc_group = paste0(
+			atc_group, " (", name, ")"
+		)
+	) %>%
+	select(ATC_code, atc_group, term, starts_with("HR"), p.value) %>%
+	mutate(
+		term = factor(
+			term, levels = dose_levels[-1], ordered = TRUE
+		)
+	)
+
+
+clrs <- c("#585CFA", "#4E77DE", "#63B3F5", "#4EC3DE", "#58FAED")
+names(clrs) <- dose_levels[-1]
+
+## increase risk
+ATC_codes_increase <- atc2level_signif_compact %>%
+	filter(HR > 1.00) %>%
+	pull(ATC_code)
+results_4plot_increase <- dose_response_signif_only %>%
+	filter(ATC_code %in% ATC_codes_increase)
+
+## decrease risk
+ATC_codes_decrease <- atc2level_signif_compact %>%
+	filter(HR < 1.00) %>%
+	pull(ATC_code)
+results_4plot_decrease <- dose_response_signif_only %>%
+	filter(ATC_code %in% ATC_codes_decrease)
+
+plot_dose_resp_compare <- function(cur_data, colors = clrs, ncolumns = 5, ylim){
+	ggplot(cur_data, aes(term, HR)) +
+		geom_hline(yintercept = 1) +
+		geom_linerange(
+			aes(ymin = HR_l, ymax = HR_u, colour = term),
+			linewidth = 1
+		) +
+		geom_point(
+			aes(color = term),
+			size = 2
+		) +
+		scale_color_manual(
+			values = colors,
+			name = "# of prescriptions"
+		) +
+		scale_y_continuous(
+			trans = "log",
+			labels = function(x){round(x, 2)}
+		) +
+		coord_cartesian(
+			ylim = ylim
+		) +
+		facet_wrap(
+			facets = ~ atc_group,
+			ncol = ncolumns,
+			# scales = "free_y",
+			labeller = label_wrap_gen(30)
+		) +
+		theme_light() +
+		theme(
+			axis.title.x = element_blank(),
+			axis.text.x = element_blank(),
+			axis.ticks.x = element_blank(),
+			panel.grid.major.x = element_blank(),
+			panel.grid.major.y = element_line(colour = "grey80"),
+			panel.spacing.y = unit(5, units = "points"),
+			strip.text = element_text(hjust = 0, face = "bold")#,
+			#legend.position = "right"
+		)
+}
+
+plot_signif_incr_risk <- plot_dose_resp_compare(
+		cur_data = results_4plot_increase,
+		ylim = c(0.5, 2.7)
+	) +
+	labs(title = "Drugs originally significantly associated with increased PD risk") +
+	theme(legend.position = "bottom", legend.justification = c(0,0))
+
+plot_signif_decr_risk <- plot_dose_resp_compare(
+		cur_data = results_4plot_decrease,
+		ylim = c(0.2, 2.0)
+	) +
+	labs(title = "Drugs originally significantly associated with decreased PD risk") +
+	theme(legend.position = "none")
+
+plot_signif_decr_risk / plot_signif_incr_risk +
+	plot_layout(
+		heights = c(2/5, 1)
+	)
+ggsave(
+	here("FIGURES", "comparison_dose_response_results_signif_only.png"),
+	height = 11,
+	width = 12
+)
+

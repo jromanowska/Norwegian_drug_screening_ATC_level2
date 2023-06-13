@@ -1,7 +1,7 @@
 # DESCRIPTION: Analysis of the results: time-lagged, ATC level 2, not stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-08
-# DATE MODIFIED: 2023-06-08
+# DATE MODIFIED: 2023-06-13
 
 # SETUP --------------
 library(tidyverse)
@@ -107,7 +107,8 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 		) +
 		scale_color_manual(
 			values = colors,
-			name = "analysis:"
+			name = "",
+			labels = c("original", paste(time_lag_strata, " year lag"))
 		) +
 		scale_y_continuous(
 			trans = "log",
@@ -117,7 +118,7 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 			facets = ~ ATC_code,
 			ncol = ncolumns,
 			#scales = "free_y",
-			labeller = label_wrap_gen(40)
+			labeller = label_wrap_gen(30)
 		) +
 		theme_light() +
 		theme(
@@ -127,29 +128,29 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 		)
 }
 
-plot_time_lag_compare(cur_data = results_4plot_increase) +
+plot_time_lags_incr <- plot_time_lag_compare(cur_data = results_4plot_increase) +
 	labs(title = "Drugs originally significantly associated with increased PD risk") +
 	theme(
 		legend.position = c(0.5, 0.1),
 		legend.direction = "horizontal"
 	)
-ggsave(
-	here("FIGURES", "comparison_time-lag_signif_only_increase_risk.png"),
-	width = 16,
-	height = 10
-)
 
-plot_time_lag_compare(cur_data = results_4plot_decrease) +
+plot_time_lags_decr <- plot_time_lag_compare(cur_data = results_4plot_decrease) +
 	labs(title = "Drugs originally significantly associated with decreased PD risk") +
 	theme(
-		legend.position = "bottom",
-		legend.direction = "horizontal"
+		legend.position = "none"
+	)
+
+plot_time_lags_decr / plot_time_lags_incr +
+	plot_layout(
+		heights = c(2/5, 1)
 	)
 ggsave(
-	here("FIGURES", "comparison_time-lag_signif_only_decrease_risk.png"),
-	width = 16,
-	height = 5
+	here("FIGURES", "comparison_time_lag_results_signif_only.png"),
+	height = 13,
+	width = 14
 )
+
 
 ### check which are significant when ----
 plot_all_signif <- function(cur_data){

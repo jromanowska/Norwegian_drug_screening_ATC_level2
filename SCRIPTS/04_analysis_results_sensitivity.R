@@ -2,7 +2,7 @@
 #   required to be cosidered as exposed to a drug
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-22
-# DATE MODIFIED: 2023-06-05
+# DATE MODIFIED: 2023-06-13
 
 # SETUP --------------
 library(tidyverse)
@@ -150,7 +150,10 @@ plot_prescr_exposure_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 			size = 3
 		) +
 		scale_color_manual(
-			values = colors, name = "", breaks = names_all_lag_results
+			values = colors,
+			name = "Exposure defined as min:",
+			breaks = names_all_lag_results,
+			labels = paste(prescr_exposure_strata, "prescriptions")
 		) +
 		scale_x_continuous(trans = "log") +
 		facet_grid(
@@ -180,16 +183,15 @@ plot_prescr_exposure_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 
 plot_signif_incr_risk <- plot_prescr_exposure_compare(cur_data = results_4plot_increase) +
 	labs(title = "Drugs originally significantly associated with increased PD risk") +
-	theme(legend.position = "bottom")
+	theme(legend.position = "bottom", legend.justification = c(-0.5,0))
 
 plot_signif_decr_risk <- plot_prescr_exposure_compare(cur_data = results_4plot_decrease) +
 	labs(title = "Drugs originally significantly associated with decreased PD risk") +
 	theme(legend.position = "none")
 
-plot_signif_incr_risk / plot_signif_decr_risk +
+plot_signif_decr_risk / plot_signif_incr_risk +
 	plot_layout(
-#		guides = "collect",
-		heights = c(1, 10/21)
+		heights = c(10/21, 1)
 	)
 ggsave(
 	here("FIGURES", "comparison_sensitivity_results_signif_only.png"),
