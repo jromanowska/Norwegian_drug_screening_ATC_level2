@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2023-06-09
+# DATE MODIFIED: 2023-06-14
 
 # SETUP --------------
 library(tidyverse)
@@ -308,6 +308,8 @@ write_lines(
 	atc2level_signif_gt_latex,
 	file = here("RESULTS", "signif_res_pooled.tex")
 )
+
+atc2level_signif_gt %>% gtsave(here("RESULTS", "signif_res_pooled.docx"))
 
 ## 3. How many per each group per direction of change? ----
 gt(
