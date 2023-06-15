@@ -47,68 +47,8 @@ signif_results_atc <- atc2level_signif_compact$ATC_code
 	select(atc_group, term, personyears, cases, estimates, p.value)
 )
 
-gt(
-	dose_response_signif_only_for_gt,
-	groupname_col = "atc_group",
-	rowname_col = "term"
-)
-
-# FOREST PLOT ----
-## function to plot nice estimates + CI ----
-hr_plot <- function(cur_data, x_range){
-  cur_data %>%
-    filter(!is.na(HR_l)) %>%
-    ggplot(aes(HR, 1)) +
-    geom_vline(xintercept = 1, color = "grey30") +
-    geom_pointrange(aes(xmin = HR_l, xmax = HR_u)) +
-    #scale_x_continuous(breaks = c(0, 1, 2.5, 5, 7.5, 10)) +
-    coord_cartesian(expand = FALSE, xlim = x_range) +
-    theme_minimal() +
-    theme(
-      axis.title = element_blank(),
-      axis.text.y = element_blank()
-    )
-}
-
-## create table with plots ----
-small_border <- officer::fp_border(color = "gray", width = 1)
-header_border <- officer::fp_border(color = "gray30", width = 2)
-
-tmp_data_table <- as.data.table(
-  dose_response %>% 
-    filter(atc_group %in% signif_results_atc) %>%
-    select(atc_group, term, starts_with("HR")) %>%
-  	filter(!is.na(HR_l)) %>%
-    arrange(atc_group, term)
-)
-
-x_range <- range(tmp_data_table$HR)
-x_range
-
-plots_per_atc_group <- tmp_data_table[
-  , list(gg_plot = list(hr_plot(.SD, x_range))), by = c("atc_group", "term")
-]
-
-# where to add the plots
-n_atc_group <- length(unique(plots_per_atc_group$atc_group))
-n_terms <- length(unique(plots_per_atc_group$term))
-idx_atc_rows <- seq.int(from = 1, by = n_terms + 1, length.out = n_atc_group)
-idx_add_plot <- map(
-  idx_atc_rows,
-  function(cur_atc_row){
-    seq.int(from = cur_atc_row + 2, by = 1, length.out = n_terms - 1)
-  }
-) %>% do.call(what = c, args = .)
-
-(
-	dose_resp_table_with_plots <- as_grouped_data(
-  dose_response_signif_only_for_gt %>%
+dose_response_signif_only_for_gt <- dose_response_signif_only_for_gt %>%
   	mutate(
-  		p.value = if_else(
-  			is.na(p.value),
-  			"",
-  			sprintf("%.2e", p.value)
-  		),
   		term = case_when(
   			term == "trt_q1" ~ dose_levels[1],
   			term == "trt_q2" ~ dose_levels[2],
@@ -116,6 +56,39 @@ idx_add_plot <- map(
   			term == "trt_q4" ~ dose_levels[4],
   			term == "trt_q5" ~ dose_levels[5],
   			term == "trt_q6" ~ dose_levels[6]
+  		)
+  	)
+
+(
+dose_response_table_gt <- gt(
+	dose_response_signif_only_for_gt,
+	groupname_col = "atc_group",
+	rowname_col = "term"
+) %>%
+		fmt_number(
+			columns = c("personyears", "cases"), decimals = 0
+		) %>%
+		fmt_scientific(
+			columns = "p.value"
+		)
+)
+
+writeLines(
+	as_latex(dose_response_table_gt),
+	here("RESULTS", "signif_res_dose_response.tex")
+)
+
+# nicer - with flextable
+small_border <- officer::fp_border(color = "gray", width = 1)
+header_border <- officer::fp_border(color = "gray30", width = 2)
+
+dose_response_table_flex <- as_grouped_data(
+  dose_response_signif_only_for_gt %>%
+  	mutate(
+  		p.value = if_else(
+  			is.na(p.value),
+  			"",
+  			sprintf("%.2e", p.value)
   		)
   	),
   groups = "atc_group"
@@ -147,13 +120,67 @@ idx_add_plot <- map(
   ) %>%
   fix_border_issues() %>%
   width(
-    j = "p.value",
-    width = 7,
-    unit = "cm"
-  ) %>%
-  width(
     j = "estimates",
     width = 5,
+    unit = "cm"
+  )
+dose_response_table_flex %>%
+  width(
+    j = "p.value",
+    width = 3,
+    unit = "cm"
+  )
+
+
+# FOREST PLOT ----
+## function to plot nice estimates + CI ----
+hr_plot <- function(cur_data, x_range){
+  cur_data %>%
+    filter(!is.na(HR_l)) %>%
+    ggplot(aes(HR, 1)) +
+    geom_vline(xintercept = 1, color = "grey30") +
+    geom_pointrange(aes(xmin = HR_l, xmax = HR_u)) +
+    #scale_x_continuous(breaks = c(0, 1, 2.5, 5, 7.5, 10)) +
+    coord_cartesian(expand = FALSE, xlim = x_range) +
+    theme_minimal() +
+    theme(
+      axis.title = element_blank(),
+      axis.text.y = element_blank()
+    )
+}
+
+## create table with plots ----
+tmp_data_table <- as.data.table(
+  dose_response %>% 
+    filter(atc_group %in% signif_results_atc) %>%
+    select(atc_group, term, starts_with("HR")) %>%
+  	filter(!is.na(HR_l)) %>%
+    arrange(atc_group, term)
+)
+
+x_range <- range(tmp_data_table$HR)
+x_range
+
+plots_per_atc_group <- tmp_data_table[
+  , list(gg_plot = list(hr_plot(.SD, x_range))), by = c("atc_group", "term")
+]
+
+# where to add the plots
+n_atc_group <- length(unique(plots_per_atc_group$atc_group))
+n_terms <- length(unique(plots_per_atc_group$term))
+idx_atc_rows <- seq.int(from = 1, by = n_terms + 1, length.out = n_atc_group)
+idx_add_plot <- map(
+  idx_atc_rows,
+  function(cur_atc_row){
+    seq.int(from = cur_atc_row + 2, by = 1, length.out = n_terms - 1)
+  }
+) %>% do.call(what = c, args = .)
+
+(
+	dose_resp_table_with_plots <- dose_response_table_flex %>%
+  width(
+    j = "p.value",
+    width = 7,
     unit = "cm"
   ) %>%
   append_chunks(
