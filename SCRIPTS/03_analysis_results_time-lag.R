@@ -1,7 +1,7 @@
 # DESCRIPTION: Analysis of the results: time-lagged, ATC level 2, not stratified
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-05-08
-# DATE MODIFIED: 2023-06-13
+# DATE MODIFIED: 2023-06-16
 
 # SETUP --------------
 library(tidyverse)
@@ -108,7 +108,7 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 		scale_color_manual(
 			values = colors,
 			name = "",
-			labels = c("original", paste(time_lag_strata, " year lag"))
+			labels = c("no lag", paste(time_lag_strata, " year lag"))
 		) +
 		scale_y_continuous(
 			trans = "log",
@@ -117,7 +117,7 @@ plot_time_lag_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 		facet_wrap(
 			facets = ~ ATC_code,
 			ncol = ncolumns,
-			#scales = "free_y",
+			scales = "free_y",
 			labeller = label_wrap_gen(30)
 		) +
 		theme_light() +
@@ -146,7 +146,7 @@ plot_time_lags_decr / plot_time_lags_incr +
 		heights = c(2/5, 1)
 	)
 ggsave(
-	here("FIGURES", "comparison_time_lag_results_signif_only.png"),
+	here("FIGURES", "comparison_time_lag_results_signif_only_varying_y_axis.png"),
 	height = 13,
 	width = 14
 )

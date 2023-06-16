@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-06-07
-# DATE MODIFIED: 2023-06-13
+# DATE MODIFIED: 2023-06-16
 
 # SETUP --------------
 library(tidyverse)
@@ -201,10 +201,9 @@ save_as_html(
 # ONLY PLOT OF CHOSEN RESULTS ----
 dose_response_signif_only <- dose_response %>%
 	filter(!is.na(HR_l)) %>%
+	filter(term != "trt_q2") %>%
 	mutate(
 		term = case_when(
-  			term == "trt_q1" ~ dose_levels[1],
-  			term == "trt_q2" ~ dose_levels[2],
   			term == "trt_q3" ~ dose_levels[3],
   			term == "trt_q4" ~ dose_levels[4],
   			term == "trt_q5" ~ dose_levels[5],
@@ -223,8 +222,8 @@ dose_response_signif_only <- dose_response %>%
 	)
 
 
-clrs <- c("#585CFA", "#4E77DE", "#63B3F5", "#4EC3DE", "#58FAED")
-names(clrs) <- dose_levels[-1]
+clrs <- c("#4E77DE", "#63B3F5", "#4EC3DE", "#58FAED")
+names(clrs) <- dose_levels[-(1:2)]
 
 ## increase risk
 ATC_codes_increase <- atc2level_signif_compact %>%
@@ -240,7 +239,7 @@ ATC_codes_decrease <- atc2level_signif_compact %>%
 results_4plot_decrease <- dose_response_signif_only %>%
 	filter(ATC_code %in% ATC_codes_decrease)
 
-plot_dose_resp_compare <- function(cur_data, colors = clrs, ncolumns = 5, ylim){
+plot_dose_resp_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 	ggplot(cur_data, aes(term, HR)) +
 		geom_hline(yintercept = 1) +
 		geom_linerange(
@@ -259,9 +258,9 @@ plot_dose_resp_compare <- function(cur_data, colors = clrs, ncolumns = 5, ylim){
 			trans = "log",
 			labels = function(x){round(x, 2)}
 		) +
-		coord_cartesian(
-			ylim = ylim
-		) +
+		# coord_cartesian(
+		# 	ylim = ylim
+		# ) +
 		facet_wrap(
 			facets = ~ atc_group,
 			ncol = ncolumns,
@@ -282,16 +281,14 @@ plot_dose_resp_compare <- function(cur_data, colors = clrs, ncolumns = 5, ylim){
 }
 
 plot_signif_incr_risk <- plot_dose_resp_compare(
-		cur_data = results_4plot_increase,
-		ylim = c(0.5, 2.7)
+		cur_data = results_4plot_increase
 	) +
 	labs(title = "Drugs originally significantly associated with increased PD risk") +
 	theme(legend.position = "bottom", legend.justification = c(0,0))
 
 plot_signif_decr_risk <- plot_dose_resp_compare(
-		cur_data = results_4plot_decrease,
-		ylim = c(0.2, 2.0)
-	) +
+		cur_data = results_4plot_decrease
+		) +
 	labs(title = "Drugs originally significantly associated with decreased PD risk") +
 	theme(legend.position = "none")
 
