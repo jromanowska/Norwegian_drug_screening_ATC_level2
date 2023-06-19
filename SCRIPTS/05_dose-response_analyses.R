@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2023-06-07
-# DATE MODIFIED: 2023-06-16
+# DATE MODIFIED: 2023-06-19
 
 # SETUP --------------
 library(tidyverse)
@@ -264,7 +264,7 @@ plot_dose_resp_compare <- function(cur_data, colors = clrs, ncolumns = 5){
 		facet_wrap(
 			facets = ~ atc_group,
 			ncol = ncolumns,
-			# scales = "free_y",
+			scales = "free_y",
 			labeller = label_wrap_gen(30)
 		) +
 		theme_light() +
