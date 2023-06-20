@@ -98,8 +98,8 @@ Scripts that produce an interactive visualization of all the results.
 
 Outputs:
 
-- [show_results_plotly_atc_level2_pooled.html](RESULTS/show_results_plotly_atc_level2_pooled.html)
-- [show_results_plotly_atc_level2_sex_strat.html](RESULTS/show_results_plotly_atc_level2_sex_strat.html)
+- [show_results_plotly_atc_level2_pooled.html](RESULTS/show_results_plotly_atc2level.html)
+- [show_results_plotly_atc_level2_sex_strat.html](RESULTS/show_results_plotly_ATC2level_sex_strata.html)
 
 ### `nice_results_atc_group3_C09_*.rds`
 
