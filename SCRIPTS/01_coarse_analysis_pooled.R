@@ -1,7 +1,7 @@
 # DESCRIPTION: General analysis of the ATC-level2 results
 # AUTHOR: Julia Romanowska
 # DATE CREATED: 2022-02-04
-# DATE MODIFIED: 2023-06-14
+# DATE MODIFIED: 2023-08-22
 
 # SETUP --------------
 library(tidyverse)
@@ -9,6 +9,8 @@ library(here)
 library(patchwork)
 library(gt)
 library(ggiraph)
+library(forestploter)
+library(grid)
 
 # READ DATA --------------
 # official ATC descriptions + DDD
@@ -383,4 +385,63 @@ ggplot(aes(ATC_code, -log10(p.adj.FDR))) +
 
 ggsave(
 	here("FIGURES", "manhattan_plot_all_res_pooled.png")
+)
+
+## 6. FORESTPLOT ----
+# for the short version of the manuscript
+atc2level_signif_df_forestplot <- atc2level_signif_compact %>%
+	arrange(direction_change, HR, ATC_code) %>%
+	mutate(
+		`ATC drug group (description)` = paste0(ATC_code, " (", tolower(name), ")"),
+		`with PD` = N.pd,
+		`w/o PD` = N.nonpd,
+		` ` = paste0(rep(" ", 20), collapse = " "), # for the plot
+		`HR (95% CI)` = sprintf(
+			"%.2f (%.2f to %.2f)", HR, HR_l, HR_u
+		)
+	) %>%
+	select(`ATC drug group (description)`, `with PD`, `w/o PD`, HR:HR_u, ` `,
+				 `HR (95% CI)`)
+atc2level_signif_df_forestplot
+
+forestplot <- forest(
+	atc2level_signif_df_forestplot %>%
+		 	select(-c(HR, HR_l, HR_u)),
+  est = atc2level_signif_df_forestplot$HR,
+  lower = atc2level_signif_df_forestplot$HR_l,
+  upper = atc2level_signif_df_forestplot$HR_u,
+  sizes = 0.3,
+  ci_column = 4,
+  ref_line = 1,
+  arrow_lab = c("Lower PD risk", "Higher PD risk"),
+  xlim = c(0.5, 2.2),
+  ticks_at = c(0.7, 1, 1.5, 2),
+) %>%
+	insert_text(
+		text = "# of users",
+		col = 2:3,
+		part = "header",
+		gp = gpar(fontface = "bold")
+	) %>%
+	insert_text(
+		text = "Drugs significantly associated with decreased PD risk",
+		row = 1,
+		just = "center",
+		col = 1:5,
+		gp = gpar(cex = 0.8, col = "gray30", fontface = "italic")
+	) %>%
+	insert_text(
+		text = "Drugs significantly associated with increased PD risk",
+		row = 12,
+		just = "center",
+		col = 1:5,
+		gp = gpar(cex = 0.8, col = "gray30", fontface = "italic")
+	)
+forestplot
+
+ggsave(
+	file = here("FIGURES", "pooled_results_forestplot.png"),
+	plot = forestplot,
+	width = 11,
+	height = 9
 )
