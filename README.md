@@ -96,6 +96,9 @@ Plot results, create tables, from sensitivity analyses.
 - `05_dose-response_analyses.R`    
 Plot results, create tables, from dose-response analyses.
 
+## FIGURES:
+
+Take a look at [all the figures](https://github.com/jromanowska/Norwegian_drug_screening_ATC_level2/tree/main/FIGURES).
 
 ## RESULTS:
 
