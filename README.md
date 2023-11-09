@@ -1,8 +1,16 @@
-The directory contains scripts, data, and other relevant information on analysis
+The repository contains scripts, data, and other relevant information on analysis
 of the results of drug-wise association study (DWAS) focusing on all the
 ATC codes at level2; with Parkonson's disease (PD) as outcome.
 
-The manuscript is submitted to Neurology.
+The manuscript is published in Neurology:
+"Association Between Use of Any of the Drugs Prescribed in Norway and the Subsequent Risk of Parkinson Disease:
+A Drug-wide Association Study", Julia Romanowska, Kjetil Bjornevik, Marianna Cortese, Julia A Tuominen,
+Magne Solheim, Asieh Abolpour Mofrad, Jannicke Igland, Clemens R Scherzer, Trond Riise, _Neurology_, **2023**,
+[DOI: 10.1212/WNL.0000000000207899](https://n.neurology.org/content/early/2023/10/10/WNL.0000000000207899)
+
+The raw files and results are available in the GitHub repo:
+https://github.com/jromanowska/Norwegian_drug_screening_ATC_level2
+and described below.
 
 ## SCRIPTS
 
@@ -88,7 +96,6 @@ Plot results, create tables, from sensitivity analyses.
 - `05_dose-response_analyses.R`    
 Plot results, create tables, from dose-response analyses.
 
-~~~
 
 ## RESULTS:
 
@@ -111,4 +118,4 @@ All results can be [viewed here](RESULTS/dose_response_table_with_plots.html).
 
 ## DATA:
 
-Check the details in [data-folder README](DATA/00_README.md)
+Check the details in [data-folder README](DATA/)
