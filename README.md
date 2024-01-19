@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/561271816.svg)](https://zenodo.org/doi/10.5281/zenodo.10532182)
+
 The repository contains scripts, data, and other relevant information on analysis
 of the results of drug-wise association study (DWAS) focusing on all the
 ATC codes at level2; with Parkonson's disease (PD) as outcome.
